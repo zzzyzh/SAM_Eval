@@ -114,7 +114,7 @@ def prompt_and_decoder(batched_input, sam_model, image_embeddings, image_size=25
             low_res.append(low_res_masks[i:i+1, idx])
         low_res_masks = torch.stack(low_res, 0)
     
-    masks = F.interpolate(low_res_masks,(image_size, image_size), mode="bilinear", align_corners=False,)
+    masks = F.interpolate(low_res_masks, (image_size, image_size), mode="bilinear", align_corners=False,)
     return masks, low_res_masks, iou_predictions
 
 
@@ -232,7 +232,7 @@ def main(args):
 
         elif prompt == 'box':
             batched_input["point_coords"], batched_input["point_labels"] = None, None
-            masks, low_res_masks, iou_predictions = prompt_and_decoder(batched_input, model, image_embeddings, multimask)
+            masks, low_res_masks, iou_predictions = prompt_and_decoder(batched_input, model, image_embeddings, image_size, multimask)
             
             boxes_show = batched_input['boxes']
             points_show = None
