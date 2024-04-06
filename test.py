@@ -157,7 +157,7 @@ def main(args):
     else:
         print('Please check you prompt type!')
         return 0
-    save_path = os.path.join(args.save_path, sam_mode, prompt, save)
+    save_path = os.path.join(args.save_path, f'{sam_mode}_{model_type}', prompt, save)
     save_pred_path = os.path.join(save_path, 'pred')
     os.makedirs(save_pred_path, exist_ok=True)
 
