@@ -122,10 +122,10 @@ def generate_point(masks, labels, low_res_masks, batched_input, strategy='base',
     masks_clone = masks.clone()
     masks_sigmoid = torch.sigmoid(masks_clone)
     masks_binary = (masks_sigmoid > 0.5).float()
+    
+    _, _, h, w = masks_binary.shape
+    labels = F.interpolate(labels, size=(h, w), mode='nearest')
 
-    masks_clone = masks.clone()
-    masks_sigmoid = torch.sigmoid(masks_clone)
-    masks_binary = (masks_sigmoid > 0.5).float()
     if strategy == 'base':
         points, point_labels = select_random_points(masks_binary, labels, point_num=point_num)
     elif strategy == 'far':
@@ -149,7 +149,7 @@ def generate_point(masks, labels, low_res_masks, batched_input, strategy='base',
     return batched_input
 
 
-def select_random_points(pr, gt, point_num = 9):
+def select_random_points(pr, gt, point_num=9):
     """
     Selects random points from the predicted and ground truth masks and assigns labels to them.
     Args:

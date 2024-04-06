@@ -24,9 +24,9 @@ def parse_args():
     # set up model
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument("--encoder_adapter", type=bool, default=True, help="use adapter")
-    parser.add_argument("--sam_mode", type=str, default="sam_med2d", choices=['sam', 'sam_med2d'], help="sam mode")
+    parser.add_argument("--sam_mode", type=str, default="sam", choices=['sam', 'sam_med2d'], help="sam mode")
     parser.add_argument("--model_type", type=str, default="vit_b", help="model type of sam")
-    parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/sam-med2d/sam-med2d_b.pth", help="sam checkpoint")
+    parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth", help="sam checkpoint")
     parser.add_argument("--multimask", type=bool, default=True, help="ouput multimask")
 
     # test settings
@@ -35,14 +35,14 @@ def parse_args():
     parser.add_argument("--dataset", type=str, default="bhx_sammed", help="dataset name")
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--num_workers", type=int, default=16, help="num workers")
-    parser.add_argument("--image_size", type=int, default=256, help="image_size")
+    parser.add_argument("--image_size", type=int, default=1024, help="image_size")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
     parser.add_argument("--vis", type=bool, default=True, help="whether to visualize the prediction")
 
     # prompt settings
     parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box'],help = "prompt way")
-    parser.add_argument("--strategy", type=str, default='base', help = "strategy of each prompt")
-    parser.add_argument("--iter_point", type=int, default=1, help="iter num") 
+    parser.add_argument("--strategy", type=str, default='far', help = "strategy of each prompt")
+    parser.add_argument("--iter_point", type=int, default=5, help="iter num") 
     parser.add_argument("--point_num", type=int, default=1, help="point num")
     
     args = parser.parse_args()
@@ -150,9 +150,9 @@ def main(args):
     
     print("======> Set Saving Directories and Logs")
     time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-    if args.prompt == 'point':
+    if prompt == 'point':
         save = f'{strategy}_{iter_point}_{time}'
-    elif args.prompt == 'box':
+    elif prompt == 'box':
         save = f'{strategy}_{time}'
     else:
         print('Please check you prompt type!')
@@ -192,7 +192,7 @@ def main(args):
     prompt_dict = {}
     test_loss = []
     test_metrics = {}
-    test_iter_metrics = [0] * len(args.metrics)
+    test_iter_metrics = [0] * len(metrics)
     if task == 'bhx_sammed':
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['right', 'left', 'third', 'fourth']}
 
