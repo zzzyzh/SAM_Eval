@@ -4,8 +4,6 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import math
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -72,10 +70,8 @@ class ImageEncoderViT(nn.Module):
             )
 
         self.blocks = nn.ModuleList()
-        vit_block = Block
-        
         for i in range(depth):
-            block = vit_block(
+            block = Block(
                 dim=embed_dim,
                 num_heads=num_heads,
                 mlp_ratio=mlp_ratio,
@@ -112,18 +108,11 @@ class ImageEncoderViT(nn.Module):
         if self.pos_embed is not None:
             x = x + self.pos_embed
 
-        self.moe_loss = 0
         for blk in self.blocks:
-            if self.finetune == 'conv-lora':
-                x, moe_loss = blk(x)
-                self.moe_loss += moe_loss
-            else:
-                x = blk(x)
-        
-        self.moe_loss /= len(self.blocks)
+            x = blk(x)
 
         x = self.neck(x.permute(0, 3, 1, 2))
-        
+
         return x
 
 

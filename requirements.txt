@@ -1,5 +1,6 @@
 opencv-python 
-matplotlib
-pillow
-SimpleITK
+tqdm
+pandas
+pydicom
+albumentations
 scikit-image
