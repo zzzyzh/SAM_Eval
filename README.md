@@ -32,6 +32,8 @@ For SAM_Eval, `python=3.8`, `pytorch=1.11.0`, and `torchvision=0.12.0` are used.
     ```
 
 ## Test
+- prepare dataset
+    - Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `pre_data.py` to process your own dataset.
 - point
     ```
     python test.py --sam_mode sam --model_type vit_b --sam_checkpoint ../sam_vit_b_01ec64.pth --image_size 1024 --prompt point --strategy base --iter_point 1

@@ -161,7 +161,7 @@ def main(args):
     save_pred_path = os.path.join(save_path, 'pred')
     os.makedirs(save_pred_path, exist_ok=True)
 
-    prompt_logs = os.path.join(save_pred_path, f"{save}_prompts.json")
+    prompt_logs = os.path.join(save_path, f"{save}_prompts.json")
     loggers = get_logger(os.path.join(save_path, f"{save}.log"))
     loggers.info(f'Args: {args}')
     
@@ -252,12 +252,12 @@ def main(args):
             test_obj_metrics[obj][j].append(test_batch_metrics[j])
   
     test_iter_metrics = [metric / l for metric in test_iter_metrics]
-    test_metrics = {metrics[i]: '{:.4f}'.format(test_iter_metrics[i]) for i in range(len(test_iter_metrics))}
+    test_metrics = {metrics[i]: '{:.2f}'.format(test_iter_metrics[i] * 100) for i in range(len(test_iter_metrics))}
 
     for obj in test_obj_metrics.keys():
         for m in range(len(metrics)):
             test_obj_metrics[obj][m] = np.mean(np.array(test_obj_metrics[obj][m]))
-        test_obj_metrics[obj] = {metrics[i]: '{:.4f}'.format(test_obj_metrics[obj][i]) for i in range(len(test_obj_metrics[obj]))}
+        test_obj_metrics[obj] = {metrics[i]: '{:.2f}'.format(test_obj_metrics[obj][i] * 100) for i in range(len(test_obj_metrics[obj]))}
 
     average_loss = np.mean(test_loss)
     loggers.info(f"Test loss: {average_loss:.4f}")
