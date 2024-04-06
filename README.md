@@ -41,5 +41,10 @@ For SAM_Eval, `python=3.8`, `pytorch=1.11.0`, and `torchvision=0.12.0` are used.
     CUDA_VISIBLE_DEVICES=1 python test.py --sam_mode sam_med2d --model_type vit_b --sam_checkpoint ../sam-med2d_b.pth --prompt box --strategy base
     ```
 
+## Acknowledgement
+Thanks to the open-source of the following projects
+- [Segment Anything](https://github.com/facebookresearch/segment-anything) &#8194; 
+- [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194;
+
 ## Contact Us
 If you have any suggestions for the project, or would like to discuss further expansions with us, please contact us at the following email: zzzyzh@qq.com or zzzyzh@bupt.edu.cn. We look forward to your valuable input!
