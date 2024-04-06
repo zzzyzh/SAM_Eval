@@ -160,6 +160,8 @@ def select_random_points(pr, gt, point_num=9):
         batch_points (np.array): Array of selected points coordinates (x, y) for each batch.
         batch_labels (np.array): Array of corresponding labels (0 for background, 1 for foreground) for each batch.
     """
+    _, _, h, w = pr.shape
+    gt = F.interpolate(gt, size=(h, w), mode='nearest')
     pred, gt = pr.data.cpu().numpy(), gt.data.cpu().numpy()
     error = np.zeros_like(pred)
     error[pred != gt] = 1
