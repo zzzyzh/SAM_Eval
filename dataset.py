@@ -86,7 +86,7 @@ class TestingDataset(Dataset):
 
 
 if __name__ == "__main__":
-    dataset = TestingDataset("/home/yanzhonghao/data/ven/bhx_sammed", mode='test', image_size=256,)
+    dataset = TestingDataset("/home/yanzhonghao/data/ven/bhx_sammed", mode='test', image_size=1024,)
     print("Dataset:", len(dataset))
     dataloader = DataLoader(dataset=dataset, batch_size=1, num_workers=16, shuffle=False, )
     tbar = tqdm((dataloader), total = len(dataloader), leave=False)

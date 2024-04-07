@@ -57,11 +57,11 @@ def save_masks(save_path, mask_name, preds, gts, image_size, original_size, pad=
     preds[preds <= 0.5] = int(0)
 
     gt = gts.squeeze().cpu().numpy()
-    gt_vis = (gt / np.max(gt)) * 255
+    gt = (gt / np.max(gt)) * 255
     mask = preds.squeeze().cpu().numpy()
-    mask_vis = (mask / np.max(mask)) * 255 if np.max(mask) > 0 else np.zeros_like(mask)
-
-    if visual_prompt: #visualize the prompt
+    mask = cv2.cvtColor(mask * 255, cv2.COLOR_GRAY2BGR)
+    
+    if visual_prompt: # visualize the prompt
         if boxes is not None:
             boxes = boxes.squeeze().cpu().numpy()
 
@@ -92,16 +92,16 @@ def save_masks(save_path, mask_name, preds, gts, image_size, original_size, pad=
                 x, y = map(int, point)
                 color = (0, 255, 0) if label == 1 else (0, 0, 255)
                 mask[y, x] = color
-                cv2.drawMarker(mask, (x, y), color, markerType=cv2.MARKER_CROSS , markerSize=7, thickness=2)  
+                cv2.drawMarker(mask, (x, y), color, markerType=cv2.MARKER_CROSS , markerSize=7, thickness=2) 
     
     plt.figure(figsize=(6, 3)) # 设置画布大小
     plt.subplot(1, 2, 1)  # 1行2列的子图中的第1个
-    plt.imshow(gt_vis, cmap='gray')  # 使用灰度颜色映射
+    plt.imshow(np.uint8(gt), cmap='gray')  # 使用灰度颜色映射
     plt.title('Ground Truth')  # 设置标题
     plt.axis('off')  # 关闭坐标轴
     
     plt.subplot(1, 2, 2)  # 1行2列的子图中的第2个
-    plt.imshow(mask_vis, cmap='gray')  # 使用灰度颜色映射
+    plt.imshow(np.uint8(mask))  # 使用灰度颜色映射
     plt.title('Prediction')  # 设置标题
     plt.axis('off')  # 关闭坐标轴
     

@@ -134,11 +134,11 @@ def generate_point(masks, labels, low_res_masks, batched_input, strategy='base',
     labels = labels if masks.shape == labels.shape else F.interpolate(labels, size=(image_size, image_size), mode="nearest").float()
     
     if strategy == 'base':
-        points, point_labels = select_random_points(masks_binary, labels, point_num=point_num)
+        points, point_labels = select_random_points(masks_binary, labels, point_num=point_num, image_size=image_size)
     elif strategy == 'far':
         points, point_labels = [], []
         for j in range(labels.shape[0]):
-            gt, pred = labels[j].data.cpu().numpy().squeeze(0), masks_binary[j].data.cpu().numpy().squeeze(0)
+            pred, gt = masks_binary[j].data.cpu().numpy().squeeze(0), labels[j].data.cpu().numpy().squeeze(0)
             error_mask = np.uint8(np.bitwise_xor(np.uint8(pred), np.uint8(gt)))
             fg_point = get_max_dist_point(error_mask)
             points.append([(fg_point[0], fg_point[1])])
@@ -156,7 +156,7 @@ def generate_point(masks, labels, low_res_masks, batched_input, strategy='base',
     return batched_input
 
 
-def select_random_points(pr, gt, point_num=9):
+def select_random_points(pred, gt, point_num=9, image_size=256):
     """
     Selects random points from the predicted and ground truth masks and assigns labels to them.
     Args:
@@ -167,7 +167,7 @@ def select_random_points(pr, gt, point_num=9):
         batch_points (np.array): Array of selected points coordinates (x, y) for each batch.
         batch_labels (np.array): Array of corresponding labels (0 for background, 1 for foreground) for each batch.
     """
-    pred, gt = pr.data.cpu().numpy(), gt.data.cpu().numpy()
+    pred, gt = pred.data.cpu().numpy(), gt.data.cpu().numpy()
     error = np.zeros_like(pred)
     error[pred != gt] = 1
 
@@ -183,7 +183,7 @@ def select_random_points(pr, gt, point_num=9):
         if indices.shape[0] > 0:
             selected_indices = indices[np.random.choice(indices.shape[0], point_num, replace=True)]
         else:
-            indices = np.random.randint(0, 256, size=(point_num, 2))
+            indices = np.random.randint(0, image_size, size=(point_num, 2))
             selected_indices = indices[np.random.choice(indices.shape[0], point_num, replace=True)]
         selected_indices = selected_indices.reshape(-1, 2)
 

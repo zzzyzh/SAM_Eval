@@ -4,12 +4,10 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-# The code is adapted from https://github.com/facebookresearch/segment-anything
-
 import torch
-import torch.nn as nn
-from torch.nn import functional as F
+
 from functools import partial
+
 from .modeling import ImageEncoderViT, MaskDecoder, PromptEncoder, Sam, TwoWayTransformer
 
 
@@ -44,8 +42,8 @@ def build_sam_vit_b(checkpoint=None):
         encoder_global_attn_indexes=[2, 5, 8, 11],
         checkpoint=checkpoint,
     )
-       
-    
+
+
 sam_model_registry = {
     "default": build_sam_vit_h,
     "vit_h": build_sam_vit_h,
@@ -107,4 +105,3 @@ def _build_sam(
             state_dict = torch.load(f)
         sam.load_state_dict(state_dict)
     return sam
-

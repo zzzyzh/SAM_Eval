@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument("--encoder_adapter", type=bool, default=True, help="use adapter")
     parser.add_argument("--sam_mode", type=str, default="sam_med2d", choices=['sam', 'sam_med2d'], help="sam mode")
-    parser.add_argument("--model_type", type=str, default="vit_b", help="model type of sam")
+    parser.add_argument("--model_type", type=str, default="vit_b", choices=['vit_b', 'vit_h'], help="model type of sam")
     parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/sam-med2d/sam-med2d_b.pth", help="sam checkpoint")
     parser.add_argument("--multimask", type=bool, default=True, help="ouput multimask")
 
@@ -42,6 +42,10 @@ def parse_args():
     # prompt settings
     parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box'],help = "prompt way")
     parser.add_argument("--strategy", type=str, default='far', help = "strategy of each prompt")
+    '''
+        point: ['base', 'far', 'center']
+        box: ['base', ]
+    '''
     parser.add_argument("--iter_point", type=int, default=5, help="iter num") 
     parser.add_argument("--point_num", type=int, default=1, help="point num")
     
@@ -233,7 +237,7 @@ def main(args):
 
         masks, pad = postprocess_masks(low_res_masks, image_size, original_size)
         if vis:
-            save_masks(save_pred_path, im_name, masks, ori_labels, image_size, original_size, pad, boxes_show, points_show, visual_prompt=False)
+            save_masks(save_pred_path, im_name, masks, ori_labels, image_size, original_size, pad, boxes_show, points_show, visual_prompt=True)
 
         loss = criterion(masks, ori_labels, iou_predictions)
         test_loss.append(loss.item())

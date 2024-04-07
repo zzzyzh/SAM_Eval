@@ -7,6 +7,7 @@ from albumentations.pytorch import ToTensorV2
 import albumentations as A
 import cv2
 
+
 class SammedPredictor:
     def __init__(self, sam_model):
 
