@@ -4,3 +4,4 @@ pandas
 pydicom
 albumentations
 scikit-image
+matplotlib
