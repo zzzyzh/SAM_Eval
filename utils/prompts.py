@@ -82,9 +82,9 @@ def init_point_sampling(mask, get_point=1, strategy='base'):
         labels (torch.Tensor): Tensor containing the corresponding labels (0 for background, 1 for foreground).
     """
     if isinstance(mask, torch.Tensor):
-        mask = mask.detach().cpu().numpy()
+        mask = mask.numpy()
         
-     # Get coordinates of black/white pixels
+    # Get coordinates of black/white pixels
     fg_coords = np.argwhere(mask == 1)[:,::-1]
     bg_coords = np.argwhere(mask == 0)[:,::-1]
 
@@ -92,7 +92,14 @@ def init_point_sampling(mask, get_point=1, strategy='base'):
     bg_size = len(bg_coords)
 
     if get_point == 1:
-        if fg_size > 0:
+        if fg_size > 0: 
+            if strategy == 'far':
+                # Compute the distance transform of the binary mask
+                dist_transform = cv2.distanceTransform(np.uint8(mask), cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
+                # Find the location of the point with maximum distance value
+                max_dist = np.max(dist_transform)
+                fg_coords = np.argwhere(dist_transform == max_dist)[:,::-1]
+                fg_size = len(fg_coords)
             index = np.random.randint(fg_size)
             fg_coord = fg_coords[index]
             label = 1
@@ -100,6 +107,7 @@ def init_point_sampling(mask, get_point=1, strategy='base'):
             index = np.random.randint(bg_size)
             fg_coord = bg_coords[index]
             label = 0
+        
         return torch.as_tensor([fg_coord.tolist()], dtype=torch.float), torch.as_tensor([label], dtype=torch.int)
     else:
         num_fg = get_point // 2
@@ -115,7 +123,7 @@ def init_point_sampling(mask, get_point=1, strategy='base'):
         return coords, labels
 
 
-def generate_point(masks, labels, low_res_masks, batched_input, strategy='base', point_num=1):
+def generate_point(masks, labels, low_res_masks, batched_input, strategy='base', point_num=1, image_size=1024,):
     low_res_masks_clone = low_res_masks.clone()
     low_res_masks_logist = torch.sigmoid(low_res_masks_clone)
     
@@ -123,15 +131,14 @@ def generate_point(masks, labels, low_res_masks, batched_input, strategy='base',
     masks_sigmoid = torch.sigmoid(masks_clone)
     masks_binary = (masks_sigmoid > 0.5).float()
     
-    _, _, h, w = masks_binary.shape
-    labels = F.interpolate(labels, size=(h, w), mode='nearest')
-
+    labels = labels if masks.shape == labels.shape else F.interpolate(labels, size=(image_size, image_size), mode="nearest").float()
+    
     if strategy == 'base':
         points, point_labels = select_random_points(masks_binary, labels, point_num=point_num)
     elif strategy == 'far':
         points, point_labels = [], []
         for j in range(labels.shape[0]):
-            pred, gt = labels[j].data.cpu().numpy().squeeze(0), masks_binary[j].data.cpu().numpy().squeeze(0)
+            gt, pred = labels[j].data.cpu().numpy().squeeze(0), masks_binary[j].data.cpu().numpy().squeeze(0)
             error_mask = np.uint8(np.bitwise_xor(np.uint8(pred), np.uint8(gt)))
             fg_point = get_max_dist_point(error_mask)
             points.append([(fg_point[0], fg_point[1])])
@@ -160,8 +167,6 @@ def select_random_points(pr, gt, point_num=9):
         batch_points (np.array): Array of selected points coordinates (x, y) for each batch.
         batch_labels (np.array): Array of corresponding labels (0 for background, 1 for foreground) for each batch.
     """
-    _, _, h, w = pr.shape
-    gt = F.interpolate(gt, size=(h, w), mode='nearest')
     pred, gt = pr.data.cpu().numpy(), gt.data.cpu().numpy()
     error = np.zeros_like(pred)
     error[pred != gt] = 1

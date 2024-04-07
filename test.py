@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import torch
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 
 from segment_anything import sam_model_registry
@@ -24,9 +24,9 @@ def parse_args():
     # set up model
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument("--encoder_adapter", type=bool, default=True, help="use adapter")
-    parser.add_argument("--sam_mode", type=str, default="sam", choices=['sam', 'sam_med2d'], help="sam mode")
+    parser.add_argument("--sam_mode", type=str, default="sam_med2d", choices=['sam', 'sam_med2d'], help="sam mode")
     parser.add_argument("--model_type", type=str, default="vit_b", help="model type of sam")
-    parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth", help="sam checkpoint")
+    parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/sam-med2d/sam-med2d_b.pth", help="sam checkpoint")
     parser.add_argument("--multimask", type=bool, default=True, help="ouput multimask")
 
     # test settings
@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument("--dataset", type=str, default="bhx_sammed", help="dataset name")
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--num_workers", type=int, default=16, help="num workers")
-    parser.add_argument("--image_size", type=int, default=1024, help="image_size")
+    parser.add_argument("--image_size", type=int, default=256, help="image_size")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
     parser.add_argument("--vis", type=bool, default=True, help="whether to visualize the prediction")
 
@@ -118,14 +118,6 @@ def prompt_and_decoder(batched_input, sam_model, image_embeddings, image_size=25
     return masks, low_res_masks, iou_predictions
 
 
-def is_not_saved(save_path, mask_name):
-    masks_path = os.path.join(save_path, f"{mask_name}")
-    if os.path.exists(masks_path):
-        return False
-    else:
-        return True
-
-
 def main(args):
     print("======> Set Parameters for Testing" )
     device = args.device
@@ -172,6 +164,8 @@ def main(args):
     num_workers = args.num_workers
     
     dataset = TestingDataset(data_path=data_path, mode='test', strategy=strategy, point_num=point_num, image_size=image_size)
+    # for debug
+    # dataset = Subset(dataset, indices=list(range(int(len(dataset) / 100))))
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False, )
     
     print("======> Set Model")
@@ -220,7 +214,7 @@ def main(args):
             for iter in range(iter_point):
                 masks, low_res_masks, iou_predictions = prompt_and_decoder(batched_input, model, image_embeddings, image_size, multimask)
                 if iter != iter_point-1:
-                    batched_input = generate_point(masks, labels, low_res_masks, batched_input, strategy, point_num)
+                    batched_input = generate_point(masks, labels, low_res_masks, batched_input, strategy, point_num, image_size)
                     batched_input = to_device(batched_input, device)
                     point_coords.append(batched_input["point_coords"])
                     point_labels.append(batched_input["point_labels"])

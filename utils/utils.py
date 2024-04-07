@@ -59,7 +59,7 @@ def save_masks(save_path, mask_name, preds, gts, image_size, original_size, pad=
     gt = gts.squeeze().cpu().numpy()
     gt_vis = (gt / np.max(gt)) * 255
     mask = preds.squeeze().cpu().numpy()
-    mask_vis = (mask / np.max(mask)) * 255
+    mask_vis = (mask / np.max(mask)) * 255 if np.max(mask) > 0 else np.zeros_like(mask)
 
     if visual_prompt: #visualize the prompt
         if boxes is not None:
