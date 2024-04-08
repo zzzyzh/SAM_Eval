@@ -30,20 +30,23 @@ def parse_args():
     parser.add_argument("--multimask", type=bool, default=True, help="ouput multimask")
 
     # test settings
-    parser.add_argument("--data_path", type=str, default="/home/yanzhonghao/data/ven", help="test data path")
-    parser.add_argument("--save_path", type=str, default="/home/yanzhonghao/data/ven/sam_eval", help="test data path")
+    parser.add_argument("--run_name", type=str, default="sam_eval", help="repo name")
+    parser.add_argument("--root_path", type=str, default="/home/yanzhonghao/data", help="root path")
+    parser.add_argument("--task", type=str, default="ven", help="task name")
     parser.add_argument("--dataset", type=str, default="bhx_sammed", help="dataset name")
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--num_workers", type=int, default=16, help="num workers")
     parser.add_argument("--image_size", type=int, default=256, help="image_size")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
-    parser.add_argument("--vis", type=bool, default=True, help="whether to visualize the prediction")
+    parser.add_argument("--visual_pred", type=bool, default=True, help="whether to visualize the prediction")
+    parser.add_argument("--visual_prompt", type=bool, default=True, help="whether to visualize the prompts")
 
     # prompt settings
-    parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box'],help = "prompt way")
+    parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box'], help = "prompt way")
+    parser.add_argument("--mask_prompt", type=bool, default=False, help = "whether to use previous prediction as mask prompts") # If using only one point works well, consider setting it to True
     parser.add_argument("--strategy", type=str, default='far', help = "strategy of each prompt")
     '''
-        point: ['base', 'far', 'center']
+        point: ['base', 'far', 'm_area']
         box: ['base', ]
     '''
     parser.add_argument("--iter_point", type=int, default=5, help="iter num") 
@@ -88,17 +91,17 @@ def postprocess_masks(low_res_masks, image_size, original_size):
     return masks, pad
 
 
-def prompt_and_decoder(batched_input, sam_model, image_embeddings, image_size=256, multimask=True):
-    if  batched_input["point_coords"] is not None:
-        points = (batched_input["point_coords"], batched_input["point_labels"])
-    else:
-        points = None
+def prompt_and_decoder(batched_input, sam_model, image_embeddings, image_size=256, mask_prompt=False, multimask=True,):
+
+    points = (batched_input["point_coords"], batched_input["point_labels"]) if batched_input["point_coords"] is not None else None
+    boxes = batched_input.get("boxes", None)
+    mask_inputs = batched_input.get("mask_inputs", None) if mask_prompt else None
 
     with torch.no_grad():
         sparse_embeddings, dense_embeddings = sam_model.prompt_encoder(
             points=points,
-            boxes=batched_input.get("boxes", None),
-            masks=batched_input.get("mask_inputs", None),
+            boxes=boxes,
+            masks = mask_inputs
         )
 
         low_res_masks, iou_predictions = sam_model.mask_decoder(
@@ -131,9 +134,11 @@ def main(args):
     strategy = args.strategy
     iter_point = args.iter_point
     point_num = args.point_num
+    mask_prompt = args.mask_prompt
     image_size = args.image_size
     multimask = args.multimask
-    vis = args.vis
+    visual_pred = args.visual_pred
+    visual_prompt = args.visual_prompt
     
     # set seed for reproducibility
     seed = 2024   
@@ -145,6 +150,9 @@ def main(args):
     np.random.seed(seed)
     
     print("======> Set Saving Directories and Logs")
+    run_name = args.run_name
+    task = args.task
+    root_path = os.path.join(args.root_path, task)
     time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     if prompt == 'point':
         save = f'{strategy}_{iter_point}_{time}'
@@ -153,7 +161,7 @@ def main(args):
     else:
         print('Please check you prompt type!')
         return 0
-    save_path = os.path.join(args.save_path, f'{sam_mode}_{model_type}', prompt, save)
+    save_path = os.path.join(root_path, run_name, f'{sam_mode}_{model_type}', prompt, save)
     save_pred_path = os.path.join(save_path, 'pred')
     os.makedirs(save_pred_path, exist_ok=True)
 
@@ -162,14 +170,14 @@ def main(args):
     loggers.info(f'Args: {args}')
     
     print("======> Load Dataset-Specific Parameters" )
-    task = args.dataset
-    data_path = os.path.join(args.data_path, task)
+    dataset_name = args.dataset
+    data_path = os.path.join(root_path, dataset_name)
     batch_size = args.batch_size
     num_workers = args.num_workers
     
     dataset = TestingDataset(data_path=data_path, mode='test', strategy=strategy, point_num=point_num, image_size=image_size)
     # for debug
-    # dataset = Subset(dataset, indices=list(range(int(len(dataset) / 100))))
+    # dataset = Subset(dataset, indices=list(range(int(len(dataset) / 10))))
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False, )
     
     print("======> Set Model")
@@ -191,7 +199,7 @@ def main(args):
     test_loss = []
     test_metrics = {}
     test_iter_metrics = [0] * len(metrics)
-    if task == 'bhx_sammed':
+    if dataset_name == 'bhx_sammed':
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['right', 'left', 'third', 'fourth']}
 
     for _, batched_input in enumerate(tbar):
@@ -216,7 +224,7 @@ def main(args):
             point_coords, point_labels = [batched_input["point_coords"]], [batched_input["point_labels"]]
      
             for iter in range(iter_point):
-                masks, low_res_masks, iou_predictions = prompt_and_decoder(batched_input, model, image_embeddings, image_size, multimask)
+                masks, low_res_masks, iou_predictions = prompt_and_decoder(batched_input, model, image_embeddings, image_size, mask_prompt, multimask)
                 if iter != iter_point-1:
                     batched_input = generate_point(masks, labels, low_res_masks, batched_input, strategy, point_num, image_size)
                     batched_input = to_device(batched_input, device)
@@ -230,14 +238,14 @@ def main(args):
 
         elif prompt == 'box':
             batched_input["point_coords"], batched_input["point_labels"] = None, None
-            masks, low_res_masks, iou_predictions = prompt_and_decoder(batched_input, model, image_embeddings, image_size, multimask)
+            masks, low_res_masks, iou_predictions = prompt_and_decoder(batched_input, model, image_embeddings, image_size, mask_prompt, multimask)
             
             boxes_show = batched_input['boxes']
             points_show = None
 
         masks, pad = postprocess_masks(low_res_masks, image_size, original_size)
-        if vis:
-            save_masks(save_pred_path, im_name, masks, ori_labels, image_size, original_size, pad, boxes_show, points_show, visual_prompt=True)
+        if visual_pred:
+            save_masks(save_pred_path, im_name, masks, ori_labels, image_size, original_size, pad, boxes_show, points_show, visual_prompt=visual_prompt)
 
         loss = criterion(masks, ori_labels, iou_predictions)
         test_loss.append(loss.item())

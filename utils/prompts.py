@@ -136,6 +136,10 @@ def generate_point(masks, labels, low_res_masks, batched_input, strategy='base',
     if strategy == 'base':
         points, point_labels = select_random_points(masks_binary, labels, point_num=point_num, image_size=image_size)
     elif strategy == 'far':
+        """
+            Find error mask
+            Find the point where the error mask is furthest from the boundary
+        """
         points, point_labels = [], []
         for j in range(labels.shape[0]):
             pred, gt = masks_binary[j].data.cpu().numpy().squeeze(0), labels[j].data.cpu().numpy().squeeze(0)
@@ -148,7 +152,28 @@ def generate_point(masks, labels, low_res_masks, batched_input, strategy='base',
                 point_labels.append([1])
         points = np.array(points)
         point_labels = np.array(point_labels)
-
+    elif strategy == 'm_area':
+        """
+            Find error mask
+            Compare the area of the false negative and false positive masks
+            Find the point where the area is furthest from the boundary
+        """
+        points, point_labels = [], []
+        for j in range(labels.shape[0]):
+            pred, gt = masks_binary[j].data.cpu().numpy().squeeze(0), labels[j].data.cpu().numpy().squeeze(0)
+            false_positive = np.uint8(np.logical_and(pred == 1, gt == 0))
+            false_negative = np.uint8(np.logical_and(pred == 0, gt == 1))
+            if np.sum(false_positive) >= np.sum(false_negative):
+                fg_point = get_max_dist_point(false_positive)
+                points.append([(fg_point[0], fg_point[1])])
+                point_labels.append([0])
+            else:
+                fg_point = get_max_dist_point(false_negative)
+                points.append([(fg_point[0], fg_point[1])])
+                point_labels.append([1])
+        points = np.array(points)
+        point_labels = np.array(point_labels)
+            
     batched_input["mask_inputs"] = low_res_masks_logist
     batched_input["point_coords"] = torch.as_tensor(points)
     batched_input["point_labels"] = torch.as_tensor(point_labels)
