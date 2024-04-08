@@ -70,7 +70,7 @@ class TestingDataset(Dataset):
         
         # initial prompts
         point_coords, point_labels = init_point_sampling(mask, self.point_num, self.strategy)
-        boxes = get_boxes_from_mask(mask)
+        boxes = get_boxes_from_mask(mask, image_size=self.image_size)
 
         image_input["im_name"] = self.label_paths[index].split('/')[-1]
         image_input["image"] = image
