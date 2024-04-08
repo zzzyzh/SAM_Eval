@@ -49,6 +49,12 @@ For SAM_Eval, `python=3.8`, `pytorch=1.11.0`, and `torchvision=0.12.0` are used.
     CUDA_VISIBLE_DEVICES=1 python test.py --sam_mode sam_med2d --model_type vit_b --sam_checkpoint ../sam-med2d_b.pth --prompt box --strategy base
     ```
 
+## Generate a prompt list for the dataset locally
+
+Considering that most existing evaluation methods require prompts to be generated based on masks, for images without masks, the only way to utilize SAM to produce segmentation results is by manually selecting points and boxes on the image, recording their coordinates, and then submitting them to SAM to generate the segmentation outcome. For this reason, I have written a script that can generate a prompt list for a set of images locally in advance. Everyone can download `find_prompt_gui.py` to use locally.
+- `q`: Quit the application.
+- `m`: Switch the mode of selecting prompts (starts with `point`, a single press of `m` switches to `box`).
+
 ## Acknowledgement
 Thanks to the open-source of the following projects
 - [Segment Anything](https://github.com/facebookresearch/segment-anything) &#8194; 
