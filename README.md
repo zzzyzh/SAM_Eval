@@ -56,7 +56,7 @@ Considering that most existing evaluation methods require prompts to be generate
 - `m`: Switch the mode of selecting prompts (starts with `point`, a single press of `m` switches to `box`).
     - Due to certain reasons, after you run the program, you need to click `m` once to enter the box mode.
 - example:
-<p align="center"><img width="800" alt="image" src="https://github.com/OpenGVLab/SAM-Med2D/blob/main/assets/dataset.png"></p> 
+<p align="center"><img width="400" alt="image" src="./pic/find_prompt_example.png"></p> 
 
 ## Acknowledgement
 Thanks to the open-source of the following projects
