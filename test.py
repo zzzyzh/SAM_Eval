@@ -24,9 +24,9 @@ def parse_args():
     # set up model
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument("--encoder_adapter", type=bool, default=True, help="use adapter")
-    parser.add_argument("--sam_mode", type=str, default="sam_med2d", choices=['sam', 'sam_med2d'], help="sam mode")
+    parser.add_argument("--sam_mode", type=str, default="sam_med2d", choices=['sam', 'sam_med2d', 'med_sam'], help="sam mode")
     parser.add_argument("--model_type", type=str, default="vit_b", choices=['vit_b', 'vit_h'], help="model type of sam")
-    parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/sam-med2d/sam-med2d_b.pth", help="sam checkpoint")
+    parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/weights/sam-med2d_b.pth", help="sam checkpoint")
     parser.add_argument("--multimask", type=bool, default=True, help="ouput multimask")
 
     # test settings
@@ -183,7 +183,7 @@ def main(args):
     print("======> Set Model")
     sam_checkpoint = args.sam_checkpoint
     encoder_adapter = args.encoder_adapter
-    if sam_mode == 'sam':
+    if sam_mode in ['sam', 'med_sam']:
         model = sam_model_registry[model_type](checkpoint=sam_checkpoint).to(device) 
     elif sam_mode == 'sam_med2d':
         model = sam_med2d_registry[model_type](image_size=image_size, sam_checkpoint=sam_checkpoint, encoder_adapter=encoder_adapter).to(device) 
