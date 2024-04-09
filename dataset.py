@@ -14,7 +14,7 @@ from utils.prompts import init_point_sampling, get_boxes_from_mask
 
 class TestingDataset(Dataset):
     
-    def __init__(self, data_path, mode='test', strategy='base', point_num=1, image_size=256):
+    def __init__(self, data_path, mode='test', strategy='base', point_num=1, image_size=256, max_pixel=0):
         """
         Initializes a TestingDataset object.
         Args:
@@ -26,6 +26,7 @@ class TestingDataset(Dataset):
         self.strategy = strategy
         self.point_num = point_num
         self.image_size = image_size
+        self.max_pixel = max_pixel
 
         json_file = open(os.path.join(data_path, mode, f'label2image_test.json'), "r")
         dataset = json.load(json_file)    
@@ -70,7 +71,7 @@ class TestingDataset(Dataset):
         
         # initial prompts
         point_coords, point_labels = init_point_sampling(mask, self.point_num, self.strategy)
-        boxes = get_boxes_from_mask(mask, strategy=self.strategy, image_size=self.image_size, max_pixel=0)
+        boxes = get_boxes_from_mask(mask, strategy=self.strategy, image_size=self.image_size, max_pixel=self.max_pixel)
 
         image_input["im_name"] = self.label_paths[index].split('/')[-1]
         image_input["image"] = image

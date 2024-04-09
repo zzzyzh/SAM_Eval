@@ -37,6 +37,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--num_workers", type=int, default=16, help="num workers")
     parser.add_argument("--image_size", type=int, default=256, help="image_size")
+    parser.add_argument("--max_pixel", type=int, default=0, help="standard pixel")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
     parser.add_argument("--visual_pred", type=bool, default=True, help="whether to visualize the prediction")
     parser.add_argument("--visual_prompt", type=bool, default=True, help="whether to visualize the prompts")
@@ -175,7 +176,7 @@ def main(args):
     batch_size = args.batch_size
     num_workers = args.num_workers
     
-    dataset = TestingDataset(data_path=data_path, mode='test', strategy=strategy, point_num=point_num, image_size=image_size)
+    dataset = TestingDataset(data_path=data_path, mode='test', strategy=strategy, point_num=point_num, image_size=image_size, max_pixel=0)
     # for debug
     # dataset = Subset(dataset, indices=list(range(int(len(dataset) / 10))))
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False, )

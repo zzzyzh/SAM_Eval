@@ -57,7 +57,6 @@ def get_boxes_from_mask(mask, strategy='base', image_size=256, box_num=1, std=0.
 
     # Perturb each bounding box with noise
     noise_boxes = []
-    max_pixel = 5 if image_size == 256 else 20
     for box, centroid in zip(boxes, centroids):
         y0, x0, y1, x1  = box
         if strategy == 'base':
@@ -76,8 +75,14 @@ def get_boxes_from_mask(mask, strategy='base', image_size=256, box_num=1, std=0.
         noise_std = min(width, height) * std
         max_noise = min(max_pixel, int(noise_std * max_pixel))
         # Add random noise to each coordinate
-        noise_x = np.random.randint(-max_noise, max_noise)
-        noise_y = np.random.randint(-max_noise, max_noise)
+        try:
+            noise_x = np.random.randint(-max_noise, max_noise)
+        except:
+            noise_x = 0
+        try:
+            noise_y = np.random.randint(-max_noise, max_noise)
+        except:
+            noise_y = 0
         x0, y0 = x0 + noise_x, y0 + noise_y
         x1, y1 = x1 + noise_x, y1 + noise_y
         noise_boxes.append((x0, y0, x1, y1))
