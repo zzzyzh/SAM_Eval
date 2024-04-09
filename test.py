@@ -47,7 +47,7 @@ def parse_args():
     parser.add_argument("--strategy", type=str, default='far', help = "strategy of each prompt")
     '''
         point: ['base', 'far', 'm_area']
-        box: ['base', ]
+        box: ['base', 'square']
     '''
     parser.add_argument("--iter_point", type=int, default=5, help="iter num") 
     parser.add_argument("--point_num", type=int, default=1, help="point num")

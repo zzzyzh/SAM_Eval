@@ -21,7 +21,7 @@ def setting_prompt_none(batched_input):
 
 
 # Boxes
-def get_boxes_from_mask(mask, image_size=256, box_num=1, std=0.1, max_pixel=5):
+def get_boxes_from_mask(mask, strategy='base', image_size=256, box_num=1, std=0.1, max_pixel=5):
     """
     Args:
         mask: Mask, can be a torch.Tensor or a numpy array of binary mask.
@@ -56,8 +56,15 @@ def get_boxes_from_mask(mask, image_size=256, box_num=1, std=0.1, max_pixel=5):
     noise_boxes = []
     max_pixel = 5 if image_size == 256 else 20
     for box in boxes:
-        y0, x0,  y1, x1  = box
-        width, height = abs(x1 - x0), abs(y1 - y0)
+        y0, x0, y1, x1  = box
+        if strategy == 'base':
+            width, height = abs(x1 - x0), abs(y1 - y0)
+        elif strategy == 'square':
+            width, height = max(abs(x1-x0), abs(y1-y0)), max(abs(x1-x0), abs(y1-y0))
+            if abs(x1 - x0) > abs(y1 - y0):
+                y1 = y0 + abs(x1 - x0)
+            else:
+                x1 = x1 + abs(y1 - y0)
         # Calculate the standard deviation and maximum noise value
         noise_std = min(width, height) * std
         max_noise = min(max_pixel, int(noise_std * 5))
