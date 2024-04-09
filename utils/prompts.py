@@ -39,36 +39,41 @@ def get_boxes_from_mask(mask, strategy='base', image_size=256, box_num=1, std=0.
 
     # Iterate through all regions and get the bounding box coordinates
     boxes = [tuple(region.bbox) for region in regions]
+    centroids = [tuple(region.centroid) for region in regions]
 
     # If the generated number of boxes is greater than the number of categories,
     # sort them by region area and select the top n regions
     if len(boxes) >= box_num:
         sorted_regions = sorted(regions, key=lambda x: x.area, reverse=True)[:box_num]
         boxes = [tuple(region.bbox) for region in sorted_regions]
-
+        centroids = [tuple(region.centroid) for region in sorted_regions]
+        
     # If the generated number of boxes is less than the number of categories,
     # duplicate the existing boxes
     elif len(boxes) < box_num:
         num_duplicates = box_num - len(boxes)
         boxes += [boxes[i % len(boxes)] for i in range(num_duplicates)]
+        centroids += [centroids[i % len(centroids)] for i in range(num_duplicates)]
 
     # Perturb each bounding box with noise
     noise_boxes = []
     max_pixel = 5 if image_size == 256 else 20
-    for box in boxes:
+    for box, centroid in zip(boxes, centroids):
         y0, x0, y1, x1  = box
         if strategy == 'base':
             width, height = abs(x1 - x0), abs(y1 - y0)
         elif strategy == 'square':
+            center_x, center_y = centroid[1], centroid[0]
             width, height = max(abs(x1-x0), abs(y1-y0)), max(abs(x1-x0), abs(y1-y0))
-            if abs(x1 - x0) > abs(y1 - y0):
-                y1 = y0 + abs(x1 - x0)
-            else:
-                x1 = x1 + abs(y1 - y0)
+            # width, height = min(abs(x1-x0), abs(y1-y0)), min(abs(x1-x0), abs(y1-y0))
+            x0 = center_x - width/2
+            x1 = center_x + width/2
+            y0 = center_y - height/2
+            y1 = center_y + height/2
         # Calculate the standard deviation and maximum noise value
         noise_std = min(width, height) * std
         max_noise = min(max_pixel, int(noise_std * 5))
-         # Add random noise to each coordinate
+        # Add random noise to each coordinate
         noise_x = np.random.randint(-max_noise, max_noise)
         noise_y = np.random.randint(-max_noise, max_noise)
         x0, y0 = x0 + noise_x, y0 + noise_y
