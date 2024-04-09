@@ -44,10 +44,10 @@ def parse_args():
     # prompt settings
     parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box'], help = "prompt way")
     parser.add_argument("--mask_prompt", type=bool, default=False, help = "whether to use previous prediction as mask prompts") # If using only one point works well, consider setting it to True
-    parser.add_argument("--strategy", type=str, default='far', help = "strategy of each prompt")
+    parser.add_argument("--strategy", type=str, default='base', help = "strategy of each prompt")
     '''
         point: ['base', 'far', 'm_area']
-        box: ['base', 'square']
+        box: ['base', 'square_max', 'square_min']
     '''
     parser.add_argument("--iter_point", type=int, default=5, help="iter num") 
     parser.add_argument("--point_num", type=int, default=1, help="point num")

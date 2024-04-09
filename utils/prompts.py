@@ -62,17 +62,19 @@ def get_boxes_from_mask(mask, strategy='base', image_size=256, box_num=1, std=0.
         y0, x0, y1, x1  = box
         if strategy == 'base':
             width, height = abs(x1 - x0), abs(y1 - y0)
-        elif strategy == 'square':
+        elif 'square' in strategy:
             center_x, center_y = centroid[1], centroid[0]
-            width, height = max(abs(x1-x0), abs(y1-y0)), max(abs(x1-x0), abs(y1-y0))
-            # width, height = min(abs(x1-x0), abs(y1-y0)), min(abs(x1-x0), abs(y1-y0))
-            x0 = center_x - width/2
-            x1 = center_x + width/2
-            y0 = center_y - height/2
-            y1 = center_y + height/2
+            if 'max' in strategy:
+                width, height = max(abs(x1-x0), abs(y1-y0)), max(abs(x1-x0), abs(y1-y0))
+            elif 'min' in strategy:
+                width, height = min(abs(x1-x0), abs(y1-y0)), min(abs(x1-x0), abs(y1-y0))
+            x0 = int(center_x - width/2)
+            x1 = int(center_x + width/2)
+            y0 = int(center_y - height/2)
+            y1 = int(center_y + height/2)
         # Calculate the standard deviation and maximum noise value
         noise_std = min(width, height) * std
-        max_noise = min(max_pixel, int(noise_std * 5))
+        max_noise = min(max_pixel, int(noise_std * max_pixel))
         # Add random noise to each coordinate
         noise_x = np.random.randint(-max_noise, max_noise)
         noise_y = np.random.randint(-max_noise, max_noise)
