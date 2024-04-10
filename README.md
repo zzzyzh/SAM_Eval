@@ -1,7 +1,6 @@
 # SAM_Eval
 
 ## Introduction
-
 Welcome to the official repository for the SAM Inference Project! This repository utilizes the pre-trained weights of SAM to provide a comprehensive platform for inference and evaluation. We are committed to building an easy-to-use and flexible SAM inference environment that meets the diverse needs of users for inference performance and results.
 
 Both medical images and natural images can be inferred and evaluated using this repository! ! ! ! !
@@ -41,17 +40,16 @@ For SAM_Eval, `python=3.8`, `pytorch=1.11.0`, and `torchvision=0.12.0` are used.
     ```
 
 ## Contribution
-
 Our project primarily evaluates the segmentation effects of different prompting methods. Users can set the strategy parameter to explore how various strategies impact the segmentation outcomes.
 
 - point
-    - base: 
-    - far: 
-    - m_area: 
+    - base: Identify areas of incorrect prediction and randomly select points from these mispredicted areas.
+    - far: Identify areas of incorrect prediction and choose the point furthest from the boundary within these mispredicted areas.
+    - m_area: Identify areas of incorrect prediction, divide them into false positive and false negative areas, and choose a point furthest from the boundary in the area with the larger surface area.
 - box
-    - base: 
-    - square_max: 
-    - square_min: 
+    - base: The bounding rectangle of the mask.
+    - square_max: Construct a square using the longer side of the mask's bounding rectangle, with the center coinciding with the mask's centroid.
+    - square_min: Construct a square using the shorter side of the mask's bounding rectangle, with the center coinciding with the mask's centroid.
 
 ## Test
 - prepare dataset
@@ -66,7 +64,6 @@ Our project primarily evaluates the segmentation effects of different prompting 
     ```
 
 ## Generate a prompt list for the dataset locally
-
 Considering that most existing evaluation methods require prompts to be generated based on masks, for images without masks, the only way to utilize SAM to produce segmentation results is by manually selecting points and boxes on the image, recording their coordinates, and then submitting them to SAM to generate the segmentation outcome. For this reason, I have written a script that can generate a prompt list for a set of images locally in advance. Everyone can download `find_prompt_gui.py` to use locally.
 - It features two modes (point and box), which can be switched by clicking `m`.
     - In point mode, clicking any location on the image will display the coordinates of that point on the image and record these coordinates.
