@@ -40,6 +40,19 @@ For SAM_Eval, `python=3.8`, `pytorch=1.11.0`, and `torchvision=0.12.0` are used.
     pip install -r requirements.txt
     ```
 
+## Contribution
+
+Our project primarily evaluates the segmentation effects of different prompting methods. Users can set the strategy parameter to explore how various strategies impact the segmentation outcomes.
+
+- point
+    - base
+    - far
+    - m_area
+- box
+    - base
+    - square_max
+    - square_min
+
 ## Test
 - prepare dataset
     - Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `pre_data.py` to process your own dataset.
