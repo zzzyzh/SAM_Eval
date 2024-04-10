@@ -113,7 +113,7 @@ def init_point_sampling(mask, get_point=1, strategy='base'):
 
     if get_point == 1:
         if fg_size > 0: 
-            if strategy == 'far':
+            if strategy in ['far', 'm_area']:
                 # Compute the distance transform of the binary mask
                 dist_transform = cv2.distanceTransform(np.uint8(mask), cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
                 # Find the location of the point with maximum distance value
