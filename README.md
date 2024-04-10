@@ -45,13 +45,13 @@ For SAM_Eval, `python=3.8`, `pytorch=1.11.0`, and `torchvision=0.12.0` are used.
 Our project primarily evaluates the segmentation effects of different prompting methods. Users can set the strategy parameter to explore how various strategies impact the segmentation outcomes.
 
 - point
-    - base
-    - far
-    - m_area
+    - base: 
+    - far: 
+    - m_area: 
 - box
-    - base
-    - square_max
-    - square_min
+    - base: 
+    - square_max: 
+    - square_min: 
 
 ## Test
 - prepare dataset
@@ -77,6 +77,16 @@ Considering that most existing evaluation methods require prompts to be generate
 - Due to certain reasons, after you run the program, you need to click `m` once to enter the box mode at first.
 - example:
 <p align="center"><img width="400" alt="image" src="./pic/find_prompt_example.png"></p> 
+
+## Citation
+```bash
+@misc{SAM_Eval_2023,
+  author = {Yan, Zhonghao},
+  title = {{SAM Evaluation}},
+  year = {2024},
+  howpublished = {\url{https://github.com/zzzyzh/SAM_Eval}},
+}
+```
 
 ## Acknowledgement
 Thanks to the open-source of the following projects
