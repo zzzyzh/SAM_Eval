@@ -32,6 +32,7 @@ def parse_args():
     # test settings
     parser.add_argument("--run_name", type=str, default="sam_eval", help="repo name")
     parser.add_argument("--root_path", type=str, default="/home/yanzhonghao/data", help="root path")
+    parser.add_argument("--save_path", type=str, default="/home/yanzhonghao/data/experiments", help="root path")
     parser.add_argument("--task", type=str, default="ven", help="task name")
     parser.add_argument("--dataset", type=str, default="bhx_sammed", help="dataset name")
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
@@ -151,7 +152,6 @@ def main(args):
     np.random.seed(seed)
     
     print("======> Set Saving Directories and Logs")
-    run_name = args.run_name
     task = args.task
     root_path = os.path.join(args.root_path, task)
     time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
@@ -162,7 +162,7 @@ def main(args):
     else:
         print('Please check you prompt type!')
         return 0
-    save_path = os.path.join(root_path, run_name, f'{sam_mode}_{model_type}', prompt, save)
+    save_path = os.path.join(args.save_path, f'{sam_mode}_{model_type}', prompt, save)
     save_pred_path = os.path.join(save_path, 'pred')
     os.makedirs(save_pred_path, exist_ok=True)
 
