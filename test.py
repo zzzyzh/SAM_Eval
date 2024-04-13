@@ -153,6 +153,7 @@ def main(args):
     
     print("======> Set Saving Directories and Logs")
     task = args.task
+    dataset_name = args.dataset
     root_path = os.path.join(args.root_path, task)
     time = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     if prompt == 'point':
@@ -162,7 +163,7 @@ def main(args):
     else:
         print('Please check you prompt type!')
         return 0
-    save_path = os.path.join(args.save_path, f'{sam_mode}_{model_type}', prompt, save)
+    save_path = os.path.join(args.save_path, dataset_name, f'{sam_mode}_{model_type}', prompt, save)
     save_pred_path = os.path.join(save_path, 'pred')
     os.makedirs(save_pred_path, exist_ok=True)
 
@@ -171,7 +172,6 @@ def main(args):
     loggers.info(f'Args: {args}')
     
     print("======> Load Dataset-Specific Parameters" )
-    dataset_name = args.dataset
     data_path = os.path.join(root_path, dataset_name)
     batch_size = args.batch_size
     num_workers = args.num_workers
