@@ -130,6 +130,7 @@ def prompt_and_decoder(batched_input, sam_model, image_embeddings, image_size=25
 def main(args):
     print("======> Set Parameters for Testing" )
     device = args.device
+    run_name = args.run_name
     sam_mode = args.sam_mode
     model_type = args.model_type
     prompt = args.prompt
@@ -163,7 +164,7 @@ def main(args):
     else:
         print('Please check you prompt type!')
         return 0
-    save_path = os.path.join(args.save_path, dataset_name, f'{sam_mode}_{model_type}', prompt, save)
+    save_path = os.path.join(args.save_path, run_name, dataset_name, f'{sam_mode}_{model_type}', prompt, save)
     save_pred_path = os.path.join(save_path, 'pred')
     os.makedirs(save_pred_path, exist_ok=True)
 
@@ -203,7 +204,7 @@ def main(args):
     if dataset_name == 'bhx_sammed':
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['right', 'left', 'third', 'fourth']}
 
-    for _, batched_input in enumerate(tbar):
+    for i, batched_input in enumerate(tbar):
         batched_input = to_device(batched_input, device)
         images = batched_input["image"]
         labels = batched_input["label"]

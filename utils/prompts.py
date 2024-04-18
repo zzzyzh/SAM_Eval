@@ -71,6 +71,8 @@ def get_boxes_from_mask(mask, strategy='base', image_size=256, box_num=1, std=0.
             x1 = int(center_x + width/2)
             y0 = int(center_y - height/2)
             y1 = int(center_y + height/2)
+        else:
+            width, height = abs(x1 - x0), abs(y1 - y0)
         # Calculate the standard deviation and maximum noise value
         noise_std = min(width, height) * std
         max_noise = min(max_pixel, int(noise_std * max_pixel))
