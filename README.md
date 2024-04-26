@@ -8,6 +8,7 @@ Both medical images and natural images can be inferred and evaluated using this 
 Our repository is based on the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; implementation, if you want to go deeper, please refer to [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194;!
 
 ## Updates
+- (2024.04.26) Inference code of BTCV release
 - (2024.04.09) Inference code of MedSAM release
 - (2024.04.06) Inference code of SAM and SAM-Med2D release
 
@@ -51,16 +52,24 @@ Our project primarily evaluates the segmentation effects of different prompting 
     - square_max: Construct a square using the longer side of the mask's bounding rectangle, with the center coinciding with the mask's centroid.
     - square_min: Construct a square using the shorter side of the mask's bounding rectangle, with the center coinciding with the mask's centroid.
 
+## Data Preparation
+
+### Download
+1. **Abdominal CT**  [Synapse Multi-atlas Abdominal Segmentation dataset](https://www.synapse.org/#!Synapse:syn3193805/wiki/217789)
+
+#### Pre-processing
+Please refer to [Cheng et al.](https://arxiv.org/abs/2308.16184)
+
+Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `pre_data.py` to process your own dataset.
+
 ## Test
-- prepare dataset
-    - Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `pre_data.py` to process your own dataset.
 - point
     ```
-    python test.py --sam_mode sam --model_type vit_b --sam_checkpoint ../sam_vit_b_01ec64.pth --image_size 1024 --prompt point --strategy base --iter_point 1
+    python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../sam_vit_b_01ec64.pth --image_size 1024 --prompt point --strategy base --iter_point 1
     ```
 - box
     ```
-    python test.py --sam_mode sam_med2d --model_type vit_b --sam_checkpoint ../sam-med2d_b.pth --prompt box --strategy base
+    python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../sam-med2d_b.pth --prompt box --strategy base
     ```
 
 ## Generate a prompt list for the dataset locally
