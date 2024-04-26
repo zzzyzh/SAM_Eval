@@ -57,7 +57,7 @@ Our project primarily evaluates the segmentation effects of different prompting 
 ### Download
 1. **Abdominal CT**  [Synapse Multi-atlas Abdominal Segmentation dataset](https://www.synapse.org/#!Synapse:syn3193805/wiki/217789)
 
-#### Pre-processing
+### Pre-processing
 Please refer to [Cheng et al.](https://arxiv.org/abs/2308.16184)
 
 Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `pre_data.py` to process your own dataset.
