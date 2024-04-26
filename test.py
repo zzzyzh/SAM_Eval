@@ -33,8 +33,8 @@ def parse_args():
     parser.add_argument("--run_name", type=str, default="sam_eval", help="repo name")
     parser.add_argument("--root_path", type=str, default="/home/yanzhonghao/data", help="root path")
     parser.add_argument("--save_path", type=str, default="/home/yanzhonghao/data/experiments", help="root path")
-    parser.add_argument("--task", type=str, default="ven", help="task name")
-    parser.add_argument("--dataset", type=str, default="bhx_sammed", help="dataset name")
+    parser.add_argument("--task", type=str, default="ven", choices=['ven', 'abdomen'], help="task name")
+    parser.add_argument("--dataset", type=str, default="bhx_sammed", choices=['bhx_sammed', 'sabs_sammed'], help="dataset name")
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--num_workers", type=int, default=16, help="num workers")
     parser.add_argument("--image_size", type=int, default=256, help="image_size")
@@ -203,6 +203,8 @@ def main(args):
     test_iter_metrics = [0] * len(metrics)
     if dataset_name == 'bhx_sammed':
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['right', 'left', 'third', 'fourth']}
+    elif dataset_name == 'sabs_sammed':
+        test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['spleen', 'rkid', 'lkid', 'gall', 'liver', 'sto', 'aorta', 'pancreas']}
 
     for i, batched_input in enumerate(tbar):
         batched_input = to_device(batched_input, device)
@@ -211,7 +213,10 @@ def main(args):
         ori_labels = batched_input["ori_label"]
         original_size = batched_input["original_size"]
         im_name = batched_input['im_name'][0]
-        obj = im_name.split('.')[0].split('_')[-2]
+        if dataset_name == 'bhx_sammed':
+            obj = im_name.split('.')[0].split('_')[-2]
+        elif dataset_name == 'sabs_sammed':
+            obj = im_name.split('.')[0].split('_')[-1]
         prompt_dict[im_name] = {
             "boxes": batched_input["boxes"].squeeze(1).cpu().numpy().tolist(),
             "point_coords": batched_input["point_coords"].squeeze(1).cpu().numpy().tolist(),
