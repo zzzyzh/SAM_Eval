@@ -1,9 +1,9 @@
 # sam-vit_b
 # base
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth --image_size 1024 --prompt box --strategy base
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth --image_size 1024 --prompt box --strategy base
 
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth --image_size 1024 --prompt box --strategy square_max
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth --image_size 1024 --prompt box --strategy square_min
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth --image_size 1024 --prompt box --strategy square_max
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam_vit_b_01ec64.pth --image_size 1024 --prompt box --strategy square_min
 
 #############################
 
@@ -18,10 +18,10 @@ CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --task abdomen --dataset sa
 
 # sam_med2d
 # base
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam-med2d_b.pth --prompt box --strategy base
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam-med2d_b.pth --prompt box --strategy base
 
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam-med2d_b.pth --prompt box --strategy square_max
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam-med2d_b.pth --prompt box --strategy square_min
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam-med2d_b.pth --prompt box --strategy square_max
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint /home/yanzhonghao/data/ven/weights/sam-med2d_b.pth --prompt box --strategy square_min
 
 #############################
 
