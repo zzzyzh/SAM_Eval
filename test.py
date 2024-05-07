@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--num_workers", type=int, default=16, help="num workers")
     parser.add_argument("--image_size", type=int, default=256, help="image_size")
+    parser.add_argument('--resolution', type=int, default=256, help='input size of the model')
     parser.add_argument("--max_pixel", type=int, default=0, help="standard pixel")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
     parser.add_argument("--visual_pred", type=bool, default=True, help="whether to visualize the prediction")
@@ -139,6 +140,7 @@ def main(args):
     point_num = args.point_num
     mask_prompt = args.mask_prompt
     image_size = args.image_size
+    resolution = args.resolution
     multimask = args.multimask
     visual_pred = args.visual_pred
     visual_prompt = args.visual_prompt
@@ -188,7 +190,7 @@ def main(args):
     if sam_mode in ['sam', 'med_sam']:
         model = sam_model_registry[model_type](checkpoint=sam_checkpoint).to(device) 
     elif sam_mode == 'sam_med2d':
-        model = sam_med2d_registry[model_type](image_size=image_size, sam_checkpoint=sam_checkpoint, encoder_adapter=encoder_adapter).to(device) 
+        model = sam_med2d_registry[model_type](image_size=256, sam_checkpoint=sam_checkpoint, encoder_adapter=encoder_adapter).to(device) 
     model.eval()
     criterion = FocalDiceloss_IoULoss()
     metrics = args.metrics
