@@ -60,7 +60,7 @@ Our project primarily evaluates the segmentation effects of different prompting 
 ### Pre-processing
 Please refer to [Cheng et al.](https://arxiv.org/abs/2308.16184)
 
-Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `pre_data.py` to process your own dataset.
+Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `data/SABS/sabs.py` to process your own dataset.
 
 ## Test
 - point

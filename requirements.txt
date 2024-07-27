@@ -6,3 +6,4 @@ albumentations
 scikit-image
 matplotlib
 nibabel
+SimpleITK

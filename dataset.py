@@ -14,7 +14,7 @@ from utils.prompts import init_point_sampling, get_boxes_from_mask
 
 class TestingDataset(Dataset):
     
-    def __init__(self, data_path, mode='test', strategy='base', point_num=1, image_size=256, max_pixel=0):
+    def __init__(self, data_path, mode='test', sam_mode='sam', strategy='base', point_num=1, image_size=256, max_pixel=0):
         """
         Initializes a TestingDataset object.
         Args:
@@ -23,6 +23,7 @@ class TestingDataset(Dataset):
             point_num (int, optional): The number of points to retrieve. Defaults to 1.
             image_size (int, optional): The size of the image. Defaults to 256.
         """
+        self.sam_mode = sam_mode
         self.strategy = strategy
         self.point_num = point_num
         self.image_size = image_size

@@ -5,24 +5,19 @@ import json
 from tqdm import tqdm
 
 import cv2
-import pydicom
 import nibabel as nib
 import numpy as np
-import pandas as pd
-from PIL import Image
+import niftiio as nio
+import SimpleITK as sitk
 
 
 VAL_VOLUME = [
-    "0035",
-    "0036",
-    "0037",
+    "0002", "0008", "0022", "0026", "0028", "0012"
 ]
 
 TEST_VOLUME = [
-    "0038",
-    "0039",
-    "0040",
-] # reference: https://github.com/Project-MONAI/research-contributions/tree/main/SwinUNETR
+    "0019", "0003", "0001", "0004", "0015", "0025"
+]
 
 part_atlas = {
     1: 'spleen', 
@@ -40,16 +35,17 @@ a_min, a_max = -125, 275
 
 
 def pre_process(target_path, source_path):
-    source_images_path = os.path.join(source_path, 'img')
-    source_masks_path = os.path.join(source_path, 'label')
-    
+    imgs = glob.glob(source_path + "/image_*.nii.gz")
+    labels = glob.glob(source_path + "/label_*.nii.gz")
+    imgs = [ fid for fid in sorted(imgs) ]
+    labels = [ fid for fid in sorted(labels) ]
+    pids = [pid.split("_")[-1].split(".")[0] for pid in imgs]
+
     for task in ['train', 'val', 'test']:    
         target_images_path = os.path.join(target_path, task, 'images')
-        target_npz_path = os.path.join(target_path, task, 'npz')
         target_masks_path = os.path.join(target_path, task, 'masks')
         target_labels_path = os.path.join(target_path, task, 'labels')
         os.makedirs(target_images_path, exist_ok=True)
-        os.makedirs(target_npz_path, exist_ok=True)
         os.makedirs(target_masks_path, exist_ok=True)
         os.makedirs(target_labels_path, exist_ok=True)
 
@@ -57,10 +53,13 @@ def pre_process(target_path, source_path):
         label2image = {}
         image2label = {}
         
-        for im_name in tqdm(sorted(os.listdir(source_images_path))):
-            
-            index = im_name[3:7]
-            lbl_name = f'label{index}.nii.gz'
+        for img_fid, seg_fid, pid in tqdm(zip(imgs, labels, pids)):
+
+            img_obj = sitk.ReadImage( img_fid )
+            seg_obj = sitk.ReadImage( seg_fid )
+        
+            index = str(pid).zfill(4)
+        
             train = False
             if task == 'train' and (index not in VAL_VOLUME and index not in TEST_VOLUME):
                 train = True
@@ -68,23 +67,13 @@ def pre_process(target_path, source_path):
                 train = True
             if task == 'test' and index in TEST_VOLUME:
                 train = True
-        
             if not train:
                 continue
             
-            source_nii = nib.load(os.path.join(source_images_path, im_name)).get_fdata()
-            source_mask = nib.load(os.path.join(source_masks_path, lbl_name)).get_fdata()
+            source_img = sitk.GetArrayFromImage(img_obj)
+            source_mask = sitk.GetArrayFromImage(seg_obj)
 
-            source_nii = source_nii.astype(np.float32)
-            source_mask = source_mask.astype(np.float32)
-
-            source_nii = np.clip(source_nii, a_min, a_max)
-
-            source_nii = np.transpose(source_nii, (2, 1, 0))  # [D, W, H]
-            source_mask = np.transpose(source_mask, (2, 1, 0))
-            source_image = (source_nii - source_nii.min()) / (source_nii.max() - source_nii.min()) * 255.0
-
-            for i, (slice_mask, slice_nii, slice_image) in enumerate(zip(source_mask, source_nii, source_image)):
+            for i, (slice_image, slice_mask) in enumerate(zip(source_img, source_mask)):
                 unique_pixel = np.unique(slice_mask)[1:]
 
                 save = False
@@ -103,14 +92,13 @@ def pre_process(target_path, source_path):
                     cv2.imwrite(os.path.join(target_labels_path, f'{target_name}_{part_atlas[k]}.png'), mask)
             
                 if save:        
-                    # 保存为 npz
-                    np.savez(os.path.join(target_npz_path, f'{target_name}.npz'), image=slice_nii)
                     # 保存为 png
                     cv2.imwrite(os.path.join(target_images_path, f'{target_name}.png'), np.uint8(slice_image)) 
                     # 保存为 mask
-                    for raw, new in hashmap.items():
-                        slice_mask[slice_mask == raw] = new
-                    cv2.imwrite(os.path.join(target_masks_path, f'{target_name}.png'), np.uint8(slice_mask)) 
+                    save_mask = np.zeros_like(slice_mask)
+                    for k in sorted(part_atlas.keys()):
+                        save_mask[slice_mask == k] = hashmap[k]
+                    cv2.imwrite(os.path.join(target_masks_path, f'{target_name}.png'), np.uint8(save_mask)) 
                     mask2image[os.path.join(target_masks_path, f'{target_name}.png')] = os.path.join(target_images_path, f'{target_name}.png')
         
         for label, image in label2image.items():
@@ -120,16 +108,36 @@ def pre_process(target_path, source_path):
                 image2label[image].append(label)
                 image2label[image] = sorted(image2label[image])
         
-        with open(os.path.join(target_path, 'label2image_test.json'), 'w', newline='\n') as f:
+        with open(os.path.join(target_path, task, 'label2image_test.json'), 'w', newline='\n') as f:
             json.dump(label2image, f, indent=2)  # 换行显示
-        with open(os.path.join(target_path, 'image2label_train.json'), 'w', newline='\n') as f:
+        with open(os.path.join(target_path, task, 'image2label_train.json'), 'w', newline='\n') as f:
             json.dump(image2label, f, indent=2)  # 换行显示
-        with open(os.path.join(target_path, 'mask2image.json'), 'w', newline='\n') as f:
+        with open(os.path.join(target_path, task, 'mask2image.json'), 'w', newline='\n') as f:
             json.dump(mask2image, f, indent=2)  # 换行显示
 
 
+def resize_shape(source_path):
+    
+    for task in ['train', 'val', 'test']:   
+        root_path = os.path.join(source_path, task)
+        
+        for sub in ['images', 'labels', 'masks']:
+            sub_path = os.path.join(root_path, sub)
+
+            for im_name in tqdm(sorted(os.listdir(sub_path))):
+                image = cv2.imread(os.path.join(sub_path, im_name))
+                
+                if sub == 'image':
+                    resize_image = cv2.resize(image, (512,512), interpolation=cv2.INTER_CUBIC)
+                else:
+                    resize_image = cv2.resize(image, (512,512), interpolation=cv2.INTER_NEAREST)
+
+                cv2.imwrite(os.path.join(sub_path, im_name), resize_image)
+                
+
 if __name__ == '__main__':
-    source_path = '/home/yanzhonghao/data/abdomen/SABS/RawData/Training'
-    target_path = '/home/yanzhonghao/data/abdomen/sabs_sammed'
+    source_path = '../../data/abdomen/SABS/sabs_CT_normalized'
+    target_path = '../../data/abdomen/sabs_sammed'
     
     pre_process(target_path, source_path)
+    resize_shape(target_path)

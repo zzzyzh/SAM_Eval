@@ -26,22 +26,21 @@ def parse_args():
     parser.add_argument("--encoder_adapter", type=bool, default=True, help="use adapter")
     parser.add_argument("--sam_mode", type=str, default="sam_med2d", choices=['sam', 'sam_med2d', 'med_sam'], help="sam mode")
     parser.add_argument("--model_type", type=str, default="vit_b", choices=['vit_b', 'vit_h'], help="model type of sam")
-    parser.add_argument("--sam_checkpoint", type=str, default="/home/yanzhonghao/data/ven/weights/sam-med2d_b.pth", help="sam checkpoint")
+    parser.add_argument("--sam_checkpoint", type=str, default="../../data/ven/weights/sam-med2d_b.pth", help="sam checkpoint")
     parser.add_argument("--multimask", type=bool, default=True, help="ouput multimask")
 
     # test settings
     parser.add_argument("--run_name", type=str, default="sam_eval", help="repo name")
-    parser.add_argument("--root_path", type=str, default="/home/yanzhonghao/data", help="root path")
-    parser.add_argument("--save_path", type=str, default="/home/yanzhonghao/data/experiments", help="root path")
+    parser.add_argument("--root_path", type=str, default="../../data", help="root path")
+    parser.add_argument("--save_path", type=str, default="../../data/experiments", help="root path")
     parser.add_argument("--task", type=str, default="ven", choices=['ven', 'abdomen'], help="task name")
     parser.add_argument("--dataset", type=str, default="bhx_sammed", choices=['bhx_sammed', 'sabs_sammed'], help="dataset name")
     parser.add_argument("--batch_size", type=int, default=1, help="batch size")
     parser.add_argument("--num_workers", type=int, default=16, help="num workers")
-    parser.add_argument("--image_size", type=int, default=256, help="image_size")
-    parser.add_argument('--resolution', type=int, default=256, help='input size of the model')
+    parser.add_argument("--image_size", type=int, default=1024, help="image_size")
     parser.add_argument("--max_pixel", type=int, default=0, help="standard pixel")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
-    parser.add_argument("--visual_pred", type=bool, default=True, help="whether to visualize the prediction")
+    parser.add_argument("--visual_pred", type=bool, default=False, help="whether to visualize the prediction")
     parser.add_argument("--visual_prompt", type=bool, default=True, help="whether to visualize the prompts")
 
     # prompt settings
@@ -140,7 +139,6 @@ def main(args):
     point_num = args.point_num
     mask_prompt = args.mask_prompt
     image_size = args.image_size
-    resolution = args.resolution
     multimask = args.multimask
     visual_pred = args.visual_pred
     visual_prompt = args.visual_prompt
@@ -179,7 +177,7 @@ def main(args):
     batch_size = args.batch_size
     num_workers = args.num_workers
     
-    dataset = TestingDataset(data_path=data_path, mode='test', strategy=strategy, point_num=point_num, image_size=image_size, max_pixel=0)
+    dataset = TestingDataset(data_path=data_path, mode='test', sam_mode=sam_mode, strategy=strategy, point_num=point_num, image_size=image_size, max_pixel=0)
     # for debug
     # dataset = Subset(dataset, indices=list(range(int(len(dataset) / 10))))
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False, )
@@ -215,10 +213,7 @@ def main(args):
         ori_labels = batched_input["ori_label"]
         original_size = batched_input["original_size"]
         im_name = batched_input['im_name'][0]
-        if dataset_name == 'bhx_sammed':
-            obj = im_name.split('.')[0].split('_')[-2]
-        elif dataset_name == 'sabs_sammed':
-            obj = im_name.split('.')[0].split('_')[-1]
+        obj = im_name.split('.')[0].split('_')[-1]
         prompt_dict[im_name] = {
             "boxes": batched_input["boxes"].squeeze(1).cpu().numpy().tolist(),
             "point_coords": batched_input["point_coords"].squeeze(1).cpu().numpy().tolist(),
