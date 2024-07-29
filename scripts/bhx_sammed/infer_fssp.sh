@@ -1,0 +1,12 @@
+# sam-vit_b
+CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/sam_vit_b_01ec64.pth  --prompt fssp
+
+#############################
+
+# sam_med2d
+CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --model_type vit_b --sam_checkpoint ../../data/experiments/weights/sam-med2d_b.pth --image_size 256 --prompt fssp
+
+#############################
+
+# med_sam
+CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth  --prompt fssp

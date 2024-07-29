@@ -54,16 +54,16 @@ CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode sam_med2d --task abdomen --data
 
 # med_sam
 # base
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy base --iter_point 1 --mask_prompt True
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy base --iter_point 5 --mask_prompt True
-CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy base --iter_point 10 --mask_prompt True
+CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy base --iter_point 1 --mask_prompt True
+CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy base --iter_point 5 --mask_prompt True
+CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy base --iter_point 10 --mask_prompt True
 
 # far
-# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy far --iter_point 1 --mask_prompt True
-# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy far --iter_point 5 --mask_prompt True
-# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy far --iter_point 10 --mask_prompt True
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy far --iter_point 1 --mask_prompt True
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy far --iter_point 5 --mask_prompt True
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy far --iter_point 10 --mask_prompt True
 
 # m_area
-# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy m_area --iter_point 1 --mask_prompt True
-# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy m_area --iter_point 5 --mask_prompt True
-# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy m_area --iter_point 10 --mask_prompt True
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy m_area --iter_point 1 --mask_prompt True
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy m_area --iter_point 5 --mask_prompt True
+# CUDA_VISIBLE_DEVICES=0 python test.py --sam_mode med_sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../../data/experiments/weights/medsam_vit_b.pth --prompt point --strategy m_area --iter_point 10 --mask_prompt True

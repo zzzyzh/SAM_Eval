@@ -5,28 +5,31 @@ import json
 from datetime import datetime
 
 import argparse
+import cv2
 import numpy as np
 import torch
 from torch.nn import functional as F
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from segment_anything import sam_model_registry
 from sam_med2d import sam_model_registry as sam_med2d_registry
 from dataset import TestingDataset
 from utils.utils import get_logger, save_masks
-from utils.prompts import generate_point
+from utils.prompts import generate_point, get_max_dist_point, train_lr_model
 from utils.metrics import FocalDiceloss_IoULoss, seg_metrics
 
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 def parse_args():
     parser = argparse.ArgumentParser()
     # set up model
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument("--encoder_adapter", type=bool, default=True, help="use adapter")
-    parser.add_argument("--sam_mode", type=str, default="sam_med2d", choices=['sam', 'sam_med2d', 'med_sam'], help="sam mode")
+    parser.add_argument("--sam_mode", type=str, default="sam", choices=['sam', 'sam_med2d', 'med_sam'], help="sam mode")
     parser.add_argument("--model_type", type=str, default="vit_b", choices=['vit_b', 'vit_h'], help="model type of sam")
-    parser.add_argument("--sam_checkpoint", type=str, default="../../data/ven/weights/sam-med2d_b.pth", help="sam checkpoint")
+    parser.add_argument("--sam_checkpoint", type=str, default="../../data/experiments/weights/sam_vit_b_01ec64.pth", help="sam checkpoint")
     parser.add_argument("--multimask", type=bool, default=True, help="ouput multimask")
 
     # test settings
@@ -41,17 +44,17 @@ def parse_args():
     parser.add_argument("--max_pixel", type=int, default=0, help="standard pixel")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
     parser.add_argument("--visual_pred", type=bool, default=False, help="whether to visualize the prediction")
-    parser.add_argument("--visual_prompt", type=bool, default=True, help="whether to visualize the prompts")
+    parser.add_argument("--visual_prompt", type=bool, default=False, help="whether to visualize the prompts")
 
     # prompt settings
-    parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box'], help = "prompt way")
+    parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box', 'fssp'], help = "prompt way")
     parser.add_argument("--mask_prompt", type=bool, default=False, help = "whether to use previous prediction as mask prompts") # If using only one point works well, consider setting it to True
     parser.add_argument("--strategy", type=str, default='base', help = "strategy of each prompt")
     '''
         point: ['base', 'far', 'm_area']
         box: ['base', 'square_max', 'square_min']
     '''
-    parser.add_argument("--iter_point", type=int, default=5, help="iter num") 
+    parser.add_argument("--iter_point", type=int, default=1, help="iter num") 
     parser.add_argument("--point_num", type=int, default=1, help="point num")
     
     args = parser.parse_args()
@@ -127,6 +130,61 @@ def prompt_and_decoder(batched_input, sam_model, image_embeddings, image_size=25
     return masks, low_res_masks, iou_predictions
 
 
+def fssp_main(sam_model, lr_model, image_embeddings, image_size):
+    feat_size = int(image_size/16)
+    img_emb = image_embeddings.cpu().numpy().transpose((2, 3, 1, 0)).reshape((feat_size, feat_size, 256)).reshape(-1, 256)
+    
+    # get the mask predicted by the linear classifier
+    y_pred = lr_model.predict(img_emb)
+    y_pred = y_pred.reshape((64, 64)) 
+    # mask predicted by the linear classifier
+    mask_pred_l = cv2.resize(y_pred, (image_size, image_size), interpolation=cv2.INTER_NEAREST)
+
+    # use distance transform to find a point inside the mask
+    fg_point = get_max_dist_point(mask_pred_l.astype('uint8'))
+    # Define the kernel for dilation
+    kernel = np.ones((5, 5), np.uint8)
+    eroded_mask = cv2.erode(mask_pred_l, kernel, iterations=3)
+    mask_pred_l = cv2.dilate(eroded_mask, kernel, iterations=5)
+    
+    # prompt the sam with the point
+    input_point = np.array([[fg_point[0], fg_point[1]]])
+    input_label = np.array([1])
+    points = (torch.as_tensor(input_point, dtype=torch.float).unsqueeze(0).cuda(), torch.as_tensor(input_label, dtype=torch.int).unsqueeze(0).cuda())
+    
+    # prompt the sam with the bounding box
+    y_indices, x_indices = np.where(mask_pred_l > 0)
+    if np.all(mask_pred_l == 0):
+        bbox = np.array([0, 0, image_size, image_size])
+    else:
+        x_min, x_max = np.min(x_indices), np.max(x_indices)
+        y_min, y_max = np.min(y_indices), np.max(y_indices)
+        H, W = mask_pred_l.shape
+        x_min = max(0, x_min - np.random.randint(0, 20))
+        x_max = min(W, x_max + np.random.randint(0, 20))
+        y_min = max(0, y_min - np.random.randint(0, 20))
+        y_max = min(H, y_max + np.random.randint(0, 20))
+        bbox = np.array([x_min, y_min, x_max, y_max])
+    boxes = torch.as_tensor(bbox, dtype=torch.float).cuda()    
+
+    with torch.no_grad():
+        sparse_embeddings, dense_embeddings = sam_model.prompt_encoder(
+            points=points,
+            boxes=boxes,
+            masks=None
+        )
+        
+        masks_pred_sam_prompted, _ = sam_model.mask_decoder(
+            image_embeddings = image_embeddings,
+            image_pe = sam_model.prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_embeddings,
+            dense_prompt_embeddings=dense_embeddings,
+            multimask_output=False,
+        )
+    
+    return masks_pred_sam_prompted, points, boxes
+
+
 def main(args):
     print("======> Set Parameters for Testing" )
     device = args.device
@@ -161,6 +219,8 @@ def main(args):
         save = f'{strategy}_{iter_point}_{time}'
     elif prompt == 'box':
         save = f'{strategy}_{time}'
+    elif prompt == 'fssp':
+        save = f'{strategy}_{time}'
     else:
         print('Please check you prompt type!')
         return 0
@@ -178,8 +238,6 @@ def main(args):
     num_workers = args.num_workers
     
     dataset = TestingDataset(data_path=data_path, mode='test', sam_mode=sam_mode, strategy=strategy, point_num=point_num, image_size=image_size, max_pixel=0)
-    # for debug
-    # dataset = Subset(dataset, indices=list(range(int(len(dataset) / 10))))
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False, )
     
     print("======> Set Model")
@@ -205,6 +263,9 @@ def main(args):
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['right', 'left', 'third', 'fourth']}
     elif dataset_name == 'sabs_sammed':
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['spleen', 'rkid', 'lkid', 'gall', 'liver', 'sto', 'aorta', 'pancreas']}
+
+    if prompt == 'fssp':
+        lr_models = train_lr_model(model, data_path, dataset_name, image_size, scale=0.001)
 
     for i, batched_input in enumerate(tbar):
         batched_input = to_device(batched_input, device)
@@ -246,6 +307,9 @@ def main(args):
             
             boxes_show = batched_input['boxes']
             points_show = None
+            
+        elif prompt == 'fssp':
+            low_res_masks, points_show, boxes_show = fssp_main(model, lr_models[obj], image_embeddings, image_size)
 
         masks, pad = postprocess_masks(low_res_masks, image_size, original_size)
         if visual_pred:

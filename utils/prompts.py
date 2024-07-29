@@ -1,14 +1,16 @@
 import os
 import logging
+import json
+from tqdm import tqdm
 
 import cv2
 import numpy as np
-from albumentations.pytorch import ToTensorV2
 import albumentations as A
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from skimage.measure import label, regionprops
+from sklearn.linear_model import LogisticRegression
 from matplotlib import pyplot as plt
 
 
@@ -263,3 +265,57 @@ def get_max_dist_point(mask):
 
     return point
 
+
+# FSSP
+def train_lr_model(model, data_path, dataset_name, image_size, scale=0.1):
+    pixel_mean = [123.675, 116.28, 103.53]
+    pixel_std = [58.395, 57.12, 57.375]
+    
+    json_file = open(os.path.join(data_path, 'train', f'label2image_test.json'), "r")
+    dataset = json.load(json_file)    
+    image_paths = list(dataset.values())
+    label_paths = list(dataset.keys())
+    
+    image_paths = image_paths[:int(len(image_paths)*scale)]
+    label_paths = label_paths[:len(image_paths)]
+    
+    if dataset_name == 'bhx_sammed':
+        image_embeddings = {key: [] for key in ['right', 'left', 'third', 'fourth']}
+        labels = {key: [] for key in ['right', 'left', 'third', 'fourth']}
+        lr_models = {key: [] for key in ['right', 'left', 'third', 'fourth']}
+    elif dataset_name == 'sabs_sammed':
+        image_embeddings = {key: [] for key in ['spleen', 'rkid', 'lkid', 'gall', 'liver', 'sto', 'aorta', 'pancreas']}
+        labels = {key: [] for key in ['spleen', 'rkid', 'lkid', 'gall', 'liver', 'sto', 'aorta', 'pancreas']}    
+        lr_models = {key: [] for key in ['spleen', 'rkid', 'lkid', 'gall', 'liver', 'sto', 'aorta', 'pancreas']}
+
+    for index in tqdm(range(len(label_paths))):
+        image = cv2.imread(image_paths[index])
+        image = (image - pixel_mean) / pixel_std
+        image = torch.tensor(image).permute(2,0,1).unsqueeze(0).to(torch.float32).cuda()
+        image = F.interpolate(image, size=(image_size, image_size), mode='bilinear')
+        with torch.no_grad():
+            img_emb = model.image_encoder(image)
+        
+        _, _, H, W = img_emb.shape
+        img_emb = img_emb.cpu().numpy().transpose((2, 3, 1, 0)).reshape((H, W, 256)).reshape(-1, 256)
+        
+        mask_path = label_paths[index]
+        mask = cv2.imread(mask_path, 0)        
+        if mask.max() == 255:
+            mask = mask / 255        
+        downsampled_mask = cv2.resize(mask, dsize=(H, W), interpolation=cv2.INTER_NEAREST)
+        
+        obj = mask_path.split('/')[-1].split('.')[0].split('_')[-1]
+        image_embeddings[obj].append(img_emb)
+        labels[obj].append(downsampled_mask.flatten())
+
+    for key in list(image_embeddings.keys()):
+        image_embeddings_cat = np.concatenate(image_embeddings[key])
+        labels_cat = np.concatenate(labels[key])
+
+        lr_model = LogisticRegression(max_iter=1000) 
+        lr_model.fit(image_embeddings_cat, labels_cat)
+        lr_models[key] =lr_model
+        
+    return lr_models
+    

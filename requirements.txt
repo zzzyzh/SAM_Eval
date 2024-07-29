@@ -4,6 +4,7 @@ pandas
 pydicom
 albumentations
 scikit-image
+scikit-learn
 matplotlib
 nibabel
 SimpleITK
