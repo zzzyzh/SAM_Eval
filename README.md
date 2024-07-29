@@ -8,7 +8,8 @@ Both medical images and natural images can be inferred and evaluated using this 
 Our repository is based on the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; implementation, if you want to go deeper, please refer to [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194;!
 
 ## Updates
-- (2024.04.26) Inference code of BTCV release
+- (2024.07.29) Inference code of few-shot-self-prompt-SAM release
+- (2024.04.26) Pre-process code of BTCV release
 - (2024.04.09) Inference code of MedSAM release
 - (2024.04.06) Inference code of SAM and SAM-Med2D release
 
