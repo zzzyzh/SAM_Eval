@@ -138,7 +138,7 @@ def fssp_main(sam_model, lr_model, image_embeddings, image_size):
     
     # get the mask predicted by the linear classifier
     y_pred = lr_model.predict(img_emb)
-    y_pred = y_pred.reshape((64, 64)) 
+    y_pred = y_pred.reshape((feat_size, feat_size)) 
     # mask predicted by the linear classifier
     mask_pred_l = cv2.resize(y_pred, (image_size, image_size), interpolation=cv2.INTER_NEAREST)
 
