@@ -44,7 +44,9 @@ def parse_args():
     parser.add_argument("--max_pixel", type=int, default=0, help="standard pixel")
     parser.add_argument("--metrics", nargs='+', default=['iou', 'dice'], help="metrics")
     parser.add_argument("--visual_pred", type=bool, default=False, help="whether to visualize the prediction")
-    parser.add_argument("--visual_prompt", type=bool, default=False, help="whether to visualize the prompts")
+    parser.add_argument("--visual_prompt", type=bool, default=False, help="whether to visualize the prompts")    
+    parser.add_argument("--scale", type=float, default=0.1)
+
 
     # prompt settings
     parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box', 'fssp'], help = "prompt way")
@@ -174,7 +176,7 @@ def fssp_main(sam_model, lr_model, image_embeddings, image_size):
             masks=None
         )
         
-        masks_pred_sam_prompted, _ = sam_model.mask_decoder(
+        masks_pred_sam_prompted, iou_predictions = sam_model.mask_decoder(
             image_embeddings = image_embeddings,
             image_pe = sam_model.prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse_embeddings,
@@ -182,7 +184,7 @@ def fssp_main(sam_model, lr_model, image_embeddings, image_size):
             multimask_output=False,
         )
     
-    return masks_pred_sam_prompted, points, boxes
+    return masks_pred_sam_prompted, iou_predictions, points, boxes
 
 
 def main(args):
@@ -220,7 +222,8 @@ def main(args):
     elif prompt == 'box':
         save = f'{strategy}_{time}'
     elif prompt == 'fssp':
-        save = f'{strategy}_{time}'
+        scale = args.scale
+        save = f'{strategy}_{int(scale*100)}_{time}'
     else:
         print('Please check you prompt type!')
         return 0
@@ -265,7 +268,7 @@ def main(args):
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['spleen', 'rkid', 'lkid', 'gall', 'liver', 'sto', 'aorta', 'pancreas']}
 
     if prompt == 'fssp':
-        lr_models = train_lr_model(model, data_path, dataset_name, image_size, scale=0.001)
+        lr_models = train_lr_model(model, data_path, dataset_name, image_size, scale=scale)
 
     for i, batched_input in enumerate(tbar):
         batched_input = to_device(batched_input, device)
@@ -309,7 +312,7 @@ def main(args):
             points_show = None
             
         elif prompt == 'fssp':
-            low_res_masks, points_show, boxes_show = fssp_main(model, lr_models[obj], image_embeddings, image_size)
+            low_res_masks, iou_predictions, points_show, boxes_show = fssp_main(model, lr_models[obj], image_embeddings, image_size)
 
         masks, pad = postprocess_masks(low_res_masks, image_size, original_size)
         if visual_pred:
