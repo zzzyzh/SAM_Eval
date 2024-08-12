@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
+from medpy import metric
 
 
 # seg metrics
@@ -43,6 +44,20 @@ def dice(pr, gt, eps=1e-7, threshold=0.5):
     return ((2. * intersection +eps) / (union + eps)).cpu().numpy()
 
 
+def hd95(pred, gt):
+    pred[pred > 0] = 1
+    gt[gt > 0] = 1
+    
+    pred = np.array(pred)
+    gt = np.array(gt)
+    
+    if pred.sum() > 0 and gt.sum() > 0:
+        hd95 = metric.binary.hd95(pred, gt)
+        return hd95
+    else:
+        return 0
+    
+
 def seg_metrics(pred, label, metrics):
     metric_list = []  
     if isinstance(metrics, str):
@@ -53,6 +68,8 @@ def seg_metrics(pred, label, metrics):
         elif metric == 'iou':
             metric_list.append(np.mean(iou(pred, label)))
         elif metric == 'dice':
+            metric_list.append(np.mean(dice(pred, label)))
+        elif metric == 'hd95':
             metric_list.append(np.mean(dice(pred, label)))
         else:
             raise ValueError('metric %s not recognized' % metric)
