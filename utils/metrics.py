@@ -48,8 +48,8 @@ def hd95(pred, gt):
     pred[pred > 0] = 1
     gt[gt > 0] = 1
     
-    pred = np.array(pred)
-    gt = np.array(gt)
+    pred = np.array(pred.detach().cpu())
+    gt = np.array(gt.detach().cpu())
     
     if pred.sum() > 0 and gt.sum() > 0:
         hd95 = metric.binary.hd95(pred, gt)
@@ -70,7 +70,7 @@ def seg_metrics(pred, label, metrics):
         elif metric == 'dice':
             metric_list.append(np.mean(dice(pred, label)))
         elif metric == 'hd95':
-            metric_list.append(np.mean(dice(pred, label)))
+            metric_list.append(np.mean(hd95(pred, label)))
         else:
             raise ValueError('metric %s not recognized' % metric)
     if pred is not None:

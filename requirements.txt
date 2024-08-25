@@ -3,6 +3,7 @@ tqdm
 pandas
 pydicom
 albumentations
+medpy
 scikit-image
 scikit-learn
 matplotlib

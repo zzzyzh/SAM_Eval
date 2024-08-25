@@ -20,8 +20,6 @@ from utils.prompts import generate_point, get_max_dist_point, train_lr_model
 from utils.metrics import FocalDiceloss_IoULoss, seg_metrics
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
-
 def parse_args():
     parser = argparse.ArgumentParser()
     # set up model
