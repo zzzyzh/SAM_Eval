@@ -47,7 +47,7 @@ def parse_args():
 
 
     # prompt settings
-    parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box', 'fssp'], help = "prompt way")
+    parser.add_argument("--prompt", type=str, default='point', choices=['point', 'box'], help = "prompt way")
     parser.add_argument("--mask_prompt", type=bool, default=False, help = "whether to use previous prediction as mask prompts") # If using only one point works well, consider setting it to True
     parser.add_argument("--strategy", type=str, default='base', help = "strategy of each prompt")
     '''
@@ -130,61 +130,6 @@ def prompt_and_decoder(batched_input, sam_model, image_embeddings, image_size=25
     return masks, low_res_masks, iou_predictions
 
 
-def fssp_main(sam_model, lr_model, image_embeddings, image_size):
-    feat_size = int(image_size/16)
-    img_emb = image_embeddings.cpu().numpy().transpose((2, 3, 1, 0)).reshape((feat_size, feat_size, 256)).reshape(-1, 256)
-    
-    # get the mask predicted by the linear classifier
-    y_pred = lr_model.predict(img_emb)
-    y_pred = y_pred.reshape((feat_size, feat_size)) 
-    # mask predicted by the linear classifier
-    mask_pred_l = cv2.resize(y_pred, (image_size, image_size), interpolation=cv2.INTER_NEAREST)
-
-    # use distance transform to find a point inside the mask
-    fg_point = get_max_dist_point(mask_pred_l.astype('uint8'))
-    # Define the kernel for dilation
-    kernel = np.ones((5, 5), np.uint8)
-    eroded_mask = cv2.erode(mask_pred_l, kernel, iterations=3)
-    mask_pred_l = cv2.dilate(eroded_mask, kernel, iterations=5)
-    
-    # prompt the sam with the point
-    input_point = np.array([[fg_point[0], fg_point[1]]])
-    input_label = np.array([1])
-    points = (torch.as_tensor(input_point, dtype=torch.float).unsqueeze(0).cuda(), torch.as_tensor(input_label, dtype=torch.int).unsqueeze(0).cuda())
-    
-    # prompt the sam with the bounding box
-    y_indices, x_indices = np.where(mask_pred_l > 0)
-    if np.all(mask_pred_l == 0):
-        bbox = np.array([0, 0, image_size, image_size])
-    else:
-        x_min, x_max = np.min(x_indices), np.max(x_indices)
-        y_min, y_max = np.min(y_indices), np.max(y_indices)
-        H, W = mask_pred_l.shape
-        x_min = max(0, x_min - np.random.randint(0, 20))
-        x_max = min(W, x_max + np.random.randint(0, 20))
-        y_min = max(0, y_min - np.random.randint(0, 20))
-        y_max = min(H, y_max + np.random.randint(0, 20))
-        bbox = np.array([x_min, y_min, x_max, y_max])
-    boxes = torch.as_tensor(bbox, dtype=torch.float).cuda()    
-
-    with torch.no_grad():
-        sparse_embeddings, dense_embeddings = sam_model.prompt_encoder(
-            points=points,
-            boxes=boxes,
-            masks=None
-        )
-        
-        masks_pred_sam_prompted, iou_predictions = sam_model.mask_decoder(
-            image_embeddings = image_embeddings,
-            image_pe = sam_model.prompt_encoder.get_dense_pe(),
-            sparse_prompt_embeddings=sparse_embeddings,
-            dense_prompt_embeddings=dense_embeddings,
-            multimask_output=False,
-        )
-    
-    return masks_pred_sam_prompted, iou_predictions, points, boxes
-
-
 def main(args):
     print("======> Set Parameters for Testing" )
     device = args.device
@@ -219,9 +164,6 @@ def main(args):
         save = f'{strategy}_{iter_point}_{time}'
     elif prompt == 'box':
         save = f'{strategy}_{time}'
-    elif prompt == 'fssp':
-        scale = args.scale
-        save = f'{strategy}_{int(scale*100)}_{time}'
     else:
         print('Please check you prompt type!')
         return 0
@@ -265,9 +207,6 @@ def main(args):
     elif dataset_name == 'sabs_sammed':
         test_obj_metrics = {key: [[] for _ in range(len(metrics))] for key in ['spleen', 'rkid', 'lkid', 'gall', 'liver', 'sto', 'aorta', 'pancreas']}
 
-    if prompt == 'fssp':
-        lr_models = train_lr_model(model, data_path, dataset_name, image_size, scale=scale)
-
     for i, batched_input in enumerate(tbar):
         batched_input = to_device(batched_input, device)
         images = batched_input["image"]
@@ -308,10 +247,7 @@ def main(args):
             
             boxes_show = batched_input['boxes']
             points_show = None
-            
-        elif prompt == 'fssp':
-            low_res_masks, iou_predictions, points_show, boxes_show = fssp_main(model, lr_models[obj], image_embeddings, image_size)
-
+        
         masks, pad = postprocess_masks(low_res_masks, image_size, original_size)
         if visual_pred:
             save_masks(save_pred_path, im_name, masks, ori_labels, image_size, original_size, pad, boxes_show, points_show, visual_prompt=visual_prompt)

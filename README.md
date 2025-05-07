@@ -8,7 +8,6 @@ Both medical images and natural images can be inferred and evaluated using this 
 Our repository is based on the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; implementation, if you want to go deeper, please refer to [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194;!
 
 ## Updates
-- (2024.07.29) Inference code of few-shot-self-prompt-SAM release
 - (2024.04.26) Pre-process code of BTCV release
 - (2024.04.09) Inference code of MedSAM release
 - (2024.04.06) Inference code of SAM and SAM-Med2D release
@@ -16,25 +15,21 @@ Our repository is based on the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2
 ## Installation
 Following [Segment Anything](https://github.com/facebookresearch/segment-anything), the code requires `python>=3.8`, as well as `pytorch>=1.7` and `torchvision>=0.8`. 
 
-For SAM_Eval, `python=3.8`, `pytorch=1.11.0`, and `torchvision=0.12.0` are used.
+For SAM_Eval, `python=3.10` and `pytorch=2.3.1` are used.
 
 1. Clone the repository.
       ```
       git clone https://github.com/zzzyzh/SAM_Eval.git
       cd SAM_Eval
       ```
-2. Create a virtual environment for FSP-SAM and and activate the environment.
+2. Create a virtual environment for SAM_Eval and activate the environment.
     ```
-    conda create -n sam_eval python=3.8
+    conda create -n sam_eval python=3.10 -y
     conda activate sam_eval
     ```
 3. Install Pytorch and TorchVision. 
     ```
-    conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=10.2 -c pytorch
-    ```
-    or
-    ```
-    conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+    pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
     ```
 4. Install other dependencies.
     ```
@@ -89,8 +84,8 @@ Considering that most existing evaluation methods require prompts to be generate
 ```bash
 @misc{SAM_Eval_2023,
   author = {Yan, Zhonghao},
-  title = {{SAM Evaluation}},
-  year = {2024},
+  title = {{Segment Anything Model for Medical Imgae Evaluation}},
+  year = {2023},
   howpublished = {\url{https://github.com/zzzyzh/SAM_Eval}},
 }
 ```
@@ -101,4 +96,4 @@ Thanks to the open-source of the following projects
 - [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194;
 
 ## Contact Us
-If you have any suggestions for the project, or would like to discuss further expansions with us, please contact us at the following email: zzzyzh@qq.com or zzzyzh@bupt.edu.cn. We look forward to your valuable input!
+If you have any suggestions for the project, or would like to discuss further expansions with us, please contact us at the following email: zhonghao.yan@bupt.edu.cn or yanzhonghao531@gmail.com. We look forward to your valuable input!
