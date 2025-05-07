@@ -1,14 +1,13 @@
 # SAM_Eval
 
 ## Introduction
-Welcome to the official repository for the SAM Inference Project! This repository utilizes the pre-trained weights of SAM to provide a comprehensive platform for inference and evaluation. We are committed to building an easy-to-use and flexible SAM inference environment that meets the diverse needs of users for inference performance and results.
+SAM Eval is a comprehensive evaluation framework designed to facilitate prompt selection strategies for segmentation tasks using SAM, SAM2, and a variety of related models. This project focuses on systematically assessing the performance of SAM-like models when directly applied to medical imaging scenarios. Naturally, the methods and strategies proposed in SAM Eval are also applicable to natural image segmentation tasks.
 
-Both medical images and natural images can be inferred and evaluated using this repository! ! ! ! !
+Built upon the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; foundation, SAM Eval incorporates rigorous evaluation using the AbdomenAtlas1.1Mini [AbdomenAtlas1.1Mini](https://huggingface.co/datasets/AbdomenAtlas/_AbdomenAtlas1.1Mini) &#8194; dataset, which includes detailed annotations for multiple abdominal organs. This enables in-depth analysis of model behavior and prompt effectiveness in realistic clinical settings.
 
-Our repository is based on the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; implementation, if you want to go deeper, please refer to [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194;!
+We invite you to explore and use SAM Eval in your own projects—whether in the medical domain or beyond!
 
 ## Updates
-- (2024.04.26) Pre-process code of BTCV release
 - (2024.04.09) Inference code of MedSAM release
 - (2024.04.06) Inference code of SAM and SAM-Med2D release
 

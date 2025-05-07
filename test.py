@@ -5,18 +5,19 @@ import json
 from datetime import datetime
 
 import argparse
-import cv2
 import numpy as np
 import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from segment_anything import sam_model_registry
-from sam_med2d import sam_model_registry as sam_med2d_registry
 from dataset import TestingDataset
+
+from model_zoo.segment_anything import sam_model_registry
+from model_zoo.sam_med2d import sam_model_registry as sam_med2d_registry
+
 from utils.utils import get_logger, save_masks
-from utils.prompts import generate_point, get_max_dist_point, train_lr_model
+from utils.prompts import generate_point
 from utils.metrics import FocalDiceloss_IoULoss, seg_metrics
 
 
