@@ -8,6 +8,7 @@ Built upon the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; found
 We invite you to explore and use SAM Eval in your own projects—whether in the medical domain or beyond!
 
 ## Updates
+- (2025.05.07) Pre-process code of AbdomenAtlas1.1 release
 - (2024.04.09) Inference code of MedSAM release
 - (2024.04.06) Inference code of SAM and SAM-Med2D release
 
@@ -50,21 +51,25 @@ Our project primarily evaluates the segmentation effects of different prompting 
 ## Data Preparation
 
 ### Download
-1. **Abdominal CT**  [Synapse Multi-atlas Abdominal Segmentation dataset](https://www.synapse.org/#!Synapse:syn3193805/wiki/217789)
+1. **AbdomenAtlas1.1**  [AbdomenAtlas1.1](https://huggingface.co/datasets/AbdomenAtlas/_AbdomenAtlas1.1Mini)
 
 ### Pre-processing
 Please refer to [Cheng et al.](https://arxiv.org/abs/2308.16184)
 
-Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `data/SABS/sabs.py` to process your own dataset.
+Our data follows the data preprocessing process mentioned in the [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D) &#8194; paper. You can refer to `dataset_split/prepare_dataset.py` to process your own dataset.
+
+    ```
+    python dataset_split/prepare_dataset.py
+    ```
 
 ## Test
 - point
     ```
-    python test.py --sam_mode sam --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../sam_vit_b_01ec64.pth --image_size 1024 --prompt point --strategy base --iter_point 1
+    CUDA_VISIBLE_DEVICES=0 python eval_sam.py --sam_mode sam --dataset_name AbdomenAtlas1.1 --image_size 1024 --model_type vit_b --prompt point --strategy base --iter_point 5
     ```
 - box
     ```
-    python test.py --sam_mode sam_med2d --task abdomen --dataset sabs_sammed --model_type vit_b --sam_checkpoint ../sam-med2d_b.pth --prompt box --strategy base
+    CUDA_VISIBLE_DEVICES=0 python eval_sam.py --sam_mode sam --dataset_name AbdomenAtlas1.1 --image_size 1024 --model_type vit_b --prompt box --strategy base
     ```
 
 ## Generate a prompt list for the dataset locally

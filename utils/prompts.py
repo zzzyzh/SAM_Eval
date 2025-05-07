@@ -7,7 +7,6 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 from skimage.measure import label, regionprops
-from sklearn.linear_model import LogisticRegression
 
 
 # Generating prompts methods
@@ -247,4 +246,17 @@ def select_random_points(pred, gt, point_num=9, image_size=256):
         batch_points.append(points)
         batch_labels.append(labels)
     return np.array(batch_points), np.array(batch_labels)
+
+
+def get_max_dist_point(mask):
+    # Compute the distance transform of the binary mask
+    dist_transform = cv2.distanceTransform(mask, cv2.DIST_L2, cv2.DIST_MASK_PRECISE)
+
+    # Find the location of the point with maximum distance value
+    max_dist = np.max(dist_transform)
+    cY, cX = np.where(dist_transform == max_dist)
+    random_idx = np.random.randint(0, len(cX))
+    point = (int(cX[random_idx]), int(cY[random_idx])) # (x, y) coordinates
+
+    return point
 
