@@ -116,7 +116,7 @@ def prepare_abdomen_atlas_1_1(raw_path, target_path):
                     cv2.imwrite(target_mask_slice_path, mask_part)
                     
                     data_split_1[target_mask_slice_path] = target_image_slice_path
-                    if int(mask_index) - 1 <= 8:
+                    if int(mask_index) - 1 in class_map_0:
                         data_split_0[target_mask_slice_path] = target_image_slice_path
     
     with open('dataset_split/AbdomenAtlas1.0.json', 'w') as f:
